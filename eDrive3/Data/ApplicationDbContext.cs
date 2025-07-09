@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace eDrive3.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -15,6 +15,7 @@ namespace eDrive3.Data
         public DbSet<Instrutor> Instrutores { get; set; }
         public DbSet<Aula> Aulas { get; set; }
         public DbSet<Presenca> Presencas { get; set; }
+        public DbSet<Secretaria> Secretarias { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

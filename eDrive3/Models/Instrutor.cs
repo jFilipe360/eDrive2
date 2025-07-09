@@ -1,4 +1,6 @@
-﻿namespace eDrive3.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eDrive3.Models
 {
     public class Instrutor
     {
@@ -7,6 +9,10 @@
 
         //Nome completo do instrutor
         public string Name { get; set; }
+
+        [Required]
+        [Display(Name = "Foto de Perfil")]
+        public string FotoUrl { get; set; }
 
         //Email do instrutor
         public string Email { get; set; }

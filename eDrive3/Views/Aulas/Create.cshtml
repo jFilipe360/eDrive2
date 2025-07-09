@@ -1,0 +1,51 @@
+﻿@model eDrive3.Models.Aula
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Aula</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-controller="Aulas" asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="LessonDate" class="control-label"></label>
+                <input asp-for="LessonDate" class="form-control" />
+                <span asp-validation-for="LessonDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Duration" class="control-label"></label>
+                <input asp-for="Duration" class="form-control" />
+                <span asp-validation-for="Duration" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Tipo" class="control-label"></label>
+                <select asp-for="Tipo" asp-items="Html.GetEnumSelectList<eDrive3.Models.Aula.TipoAula>()" class="form-control"></select>
+                <span asp-validation-for="Tipo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="InstructorId" class="control-label"></label>
+                <select asp-for="InstructorId" asp-items="ViewBag.InstructorList" class="form-control">
+                    <option value="">-- Select an Instructor --</option>
+                </select>
+                <span asp-validation-for="InstructorId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
