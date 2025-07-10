@@ -6,3 +6,24 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+
+@if (User.IsInRole("Admin"))
+{
+    <h1>Hello Admin</h1>
+} else if (User.IsInRole("Aluno"))
+{
+    <h1>Hello Aluno</h1>
+}
+else if (User.IsInRole("Instrutor"))
+{
+    <h1>Hello Instrutor</h1>
+}
+else if (User.IsInRole("Secretaria"))
+{
+    <h1>Hello Secretaria</h1>
+}
+else
+{
+    <h1>Hello User</h1>
+}

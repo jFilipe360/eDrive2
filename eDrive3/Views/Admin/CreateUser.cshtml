@@ -1,0 +1,54 @@
+﻿@model CreateUserVm
+
+@{
+    ViewData["Title"] = "Criar Utilizador";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="CreateUser" method="post" id="create-user-form">
+    <div>
+        <label>Função:</label>
+        <select asp-for="Role" id="role-select" required>
+            <option value="Aluno">Aluno</option>
+            <option value="Instrutor">Instrutor</option>
+            <option value="Secretaria">Secretaria</option>
+            <option value="Admin">Admin</option>
+        </select>
+    </div>
+
+    <div>
+        <label>Nome Completo:</label>
+        <input asp-for="NomeCompleto" required />
+    </div>
+
+    <div>
+        <label>Foto (URL):</label>
+        <input asp-for="FotoUrl" />
+    </div>
+
+    <div>
+        <label>Nº Telemóvel:</label>
+        <input asp-for="NrTelemovel" />
+    </div>
+
+    <!-- Morada só para Aluno -->
+    <div id="morada-wrapper" style="display:none;">
+        <label>Morada:</label>
+        <input asp-for="Morada" />
+    </div>
+
+    <button type="submit">Criar Utilizador</button>
+</form>
+
+@section Scripts {
+    <script>
+        function toggleMorada() {
+            const role = document.getElementById('role-select').value;
+            document.getElementById('morada-wrapper').style.display =
+                (role === 'Aluno') ? 'block' : 'none';
+        }
+        document.getElementById('role-select').addEventListener('change', toggleMorada);
+        toggleMorada();
+    </script>
+}
