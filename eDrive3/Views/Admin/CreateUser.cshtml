@@ -1,39 +1,54 @@
-﻿@{
-    ViewData["Title"] = "Create User";
+﻿@model CreateUserVm
+
+@{
+    ViewData["Title"] = "Criar Utilizador";
 }
 
-<h2>Create User</h2>
+<h2>@ViewData["Title"]</h2>
 
-<form asp-action="CreateUser" method="post">
+<form asp-action="CreateUser" method="post" id="create-user-form">
     <div>
-        <label>Email:</label>
-        <input type="email" name="email" required />
-    </div>
-
-    <div>
-        <label>Password:</label>
-        <input type="password" name="password" required />
-    </div>
-
-    <div>
-        <label>Role:</label>
-        <select name="role" required>
-            <option value="Admin">Admin</option>
-            <option value="Secretaria">Secretaria</option>
-            <option value="Instrutor">Instrutor</option>
+        <label>Função:</label>
+        <select asp-for="Role" id="role-select" required>
             <option value="Aluno">Aluno</option>
+            <option value="Instrutor">Instrutor</option>
+            <option value="Secretaria">Secretaria</option>
+            <option value="Admin">Admin</option>
         </select>
     </div>
 
-    <button type="submit">Create User</button>
+    <div>
+        <label>Nome Completo:</label>
+        <input asp-for="NomeCompleto" required />
+    </div>
+
+    <div>
+        <label>Foto (URL):</label>
+        <input asp-for="FotoUrl" />
+    </div>
+
+    <div>
+        <label>Nº Telemóvel:</label>
+        <input asp-for="NrTelemovel" />
+    </div>
+
+    <!-- Morada só para Aluno -->
+    <div id="morada-wrapper" style="display:none;">
+        <label>Morada:</label>
+        <input asp-for="Morada" />
+    </div>
+
+    <button type="submit">Criar Utilizador</button>
 </form>
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <ul>
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-        {
-            <li>@error.ErrorMessage</li>
+@section Scripts {
+    <script>
+        function toggleMorada() {
+            const role = document.getElementById('role-select').value;
+            document.getElementById('morada-wrapper').style.display =
+                (role === 'Aluno') ? 'block' : 'none';
         }
-    </ul>
+        document.getElementById('role-select').addEventListener('change', toggleMorada);
+        toggleMorada();
+    </script>
 }

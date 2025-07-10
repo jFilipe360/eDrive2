@@ -10,22 +10,22 @@ using eDrive3.Models;
 
 namespace eDrive3.Controllers
 {
-    public class AlunosController : Controller
+    public class SecretariasController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public AlunosController(ApplicationDbContext context)
+        public SecretariasController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Alunos
+        // GET: Secretarias
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Alunos.ToListAsync());
+            return View(await _context.Secretarias.ToListAsync());
         }
 
-        // GET: Alunos/Details/5
+        // GET: Secretarias/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,18 +33,17 @@ namespace eDrive3.Controllers
                 return NotFound();
             }
 
-            var aluno = await _context.Alunos
-                .FirstOrDefaultAsync(m => m.AlunoID == id);
-            if (aluno == null)
+            var secretaria = await _context.Secretarias
+                .FirstOrDefaultAsync(m => m.SecretariaID == id);
+            if (secretaria == null)
             {
                 return NotFound();
             }
 
-            return View(aluno);
+            return View(secretaria);
         }
 
-        
-        // GET: Alunos/Edit/5
+        // GET: Secretarias/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -52,22 +51,22 @@ namespace eDrive3.Controllers
                 return NotFound();
             }
 
-            var aluno = await _context.Alunos.FindAsync(id);
-            if (aluno == null)
+            var secretaria = await _context.Secretarias.FindAsync(id);
+            if (secretaria == null)
             {
                 return NotFound();
             }
-            return View(aluno);
+            return View(secretaria);
         }
 
-        // POST: Alunos/Edit/5
+        // POST: Secretarias/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AlunoID,NomeCompleto,FotoUrl,Email,NrTelemovel,Morada")] Aluno aluno)
+        public async Task<IActionResult> Edit(int id, [Bind("SecretariaID,Nome,FotoUrl,Email,NrTelemovel")] Secretaria secretaria)
         {
-            if (id != aluno.AlunoID)
+            if (id != secretaria.SecretariaID)
             {
                 return NotFound();
             }
@@ -76,12 +75,12 @@ namespace eDrive3.Controllers
             {
                 try
                 {
-                    _context.Update(aluno);
+                    _context.Update(secretaria);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AlunoExists(aluno.AlunoID))
+                    if (!SecretariaExists(secretaria.SecretariaID))
                     {
                         return NotFound();
                     }
@@ -92,10 +91,10 @@ namespace eDrive3.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(aluno);
+            return View(secretaria);
         }
 
-        // GET: Alunos/Delete/5
+        // GET: Secretarias/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -103,34 +102,34 @@ namespace eDrive3.Controllers
                 return NotFound();
             }
 
-            var aluno = await _context.Alunos
-                .FirstOrDefaultAsync(m => m.AlunoID == id);
-            if (aluno == null)
+            var secretaria = await _context.Secretarias
+                .FirstOrDefaultAsync(m => m.SecretariaID == id);
+            if (secretaria == null)
             {
                 return NotFound();
             }
 
-            return View(aluno);
+            return View(secretaria);
         }
 
-        // POST: Alunos/Delete/5
+        // POST: Secretarias/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var aluno = await _context.Alunos.FindAsync(id);
-            if (aluno != null)
+            var secretaria = await _context.Secretarias.FindAsync(id);
+            if (secretaria != null)
             {
-                _context.Alunos.Remove(aluno);
+                _context.Secretarias.Remove(secretaria);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AlunoExists(int id)
+        private bool SecretariaExists(int id)
         {
-            return _context.Alunos.Any(e => e.AlunoID == id);
+            return _context.Secretarias.Any(e => e.SecretariaID == id);
         }
     }
 }

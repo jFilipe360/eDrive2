@@ -43,38 +43,8 @@ namespace eDrive3.Controllers
             return View(instrutor);
         }
 
-        // GET: Instrutores/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Instrutores/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("InstrutorID,Name,Email,NrTelemovel")] Instrutor instrutor)
-        {
-            if (!ModelState.IsValid)
-            {
-                foreach (var kvp in ModelState)
-                {
-                    var field = kvp.Key;
-                    var errors = kvp.Value.Errors;
-                    foreach (var error in errors)
-                    {
-                        Console.WriteLine($"ModelState error on {field}: {error.ErrorMessage}");
-                    }
-                }
-                _context.Add(instrutor);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(instrutor);
-        }
-
-        // GET: Instrutores/Edit/5
+        
+        // GET: Instrutors/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -90,12 +60,12 @@ namespace eDrive3.Controllers
             return View(instrutor);
         }
 
-        // POST: Instrutores/Edit/5
+        // POST: Instrutors/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("InstrutorID,Name,Email,NrTelemovel")] Instrutor instrutor)
+        public async Task<IActionResult> Edit(int id, [Bind("InstrutorID,Name,FotoUrl,Email,NrTelemovel")] Instrutor instrutor)
         {
             if (id != instrutor.InstrutorID)
             {
@@ -125,7 +95,7 @@ namespace eDrive3.Controllers
             return View(instrutor);
         }
 
-        // GET: Instrutores/Delete/5
+        // GET: Instrutors/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -143,7 +113,7 @@ namespace eDrive3.Controllers
             return View(instrutor);
         }
 
-        // POST: Instrutores/Delete/5
+        // POST: Instrutors/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

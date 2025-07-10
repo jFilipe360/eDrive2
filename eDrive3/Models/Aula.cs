@@ -1,4 +1,6 @@
-﻿namespace eDrive3.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eDrive3.Models
 {
     public class Aula
     {
@@ -6,13 +8,17 @@
         public int AulaID { get; set; }
 
         //Data para a aula
+        [Required]
         public DateTime LessonDate { get; set; }
 
         //Duração da aula
+        [Required]
         public int Duration { get; set; }
 
         //Tipo de aula (Teórica ou prática)
+        [Required]
         public TipoAula Tipo { get; set; }
+
 
 
 

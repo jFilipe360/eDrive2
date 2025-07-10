@@ -16,6 +16,9 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.FotoUrl)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Email)
             </th>
             <th>
@@ -29,6 +32,11 @@
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                    <img src="@item.FotoUrl"
+                         alt="Foto de @item.Name"
+                         style="max-height:70px;max-width:70px;object-fit:cover;">
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Email)

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<eDrive3.Models.Aluno>
+﻿@model IEnumerable<eDrive3.Models.Secretaria>
 
 @{
     ViewData["Title"] = "Index";
@@ -13,7 +13,7 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.NomeCompleto)
+                @Html.DisplayNameFor(model => model.Nome)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.FotoUrl)
@@ -24,9 +24,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.NrTelemovel)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Morada)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -34,11 +31,11 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.NomeCompleto)
+                @Html.DisplayFor(modelItem => item.Nome)
             </td>
             <td>
                     <img src="@item.FotoUrl"
-                         alt="Foto de @item.NomeCompleto"
+                         alt="Foto de @item.Nome"
                          style="max-height:70px;max-width:70px;object-fit:cover;">
             </td>
             <td>
@@ -48,12 +45,9 @@
                 @Html.DisplayFor(modelItem => item.NrTelemovel)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Morada)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.AlunoID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.AlunoID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.AlunoID">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.SecretariaID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.SecretariaID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.SecretariaID">Delete</a>
             </td>
         </tr>
 }

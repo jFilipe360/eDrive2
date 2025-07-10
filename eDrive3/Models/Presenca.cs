@@ -10,12 +10,11 @@
         public ListaEstados Estado { get; set; }
 
 
-
-        // Foreign key for Student
+        // Foreign key do estudante
         public int AlunoID { get; set; }
         public Aluno Aluno { get; set; }
 
-        // Foreign key for Lesson
+        // Foreign key da lição
         public int AulaID { get; set; }
         public Aula Aula { get; set; }
 
