@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -6,7 +10,7 @@
     <title>@ViewData["Title"] - eDrive3</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css?v=1.2" asp-append-version="true" />
     <link rel="stylesheet" href="~/eDrive3.styles.css" asp-append-version="true" />
 </head>
 <body>
@@ -23,8 +27,25 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <!-- O Aluno poderá ver as aulas às quais já esteve presente -->
+                            @if (User.IsInRole("Aluno"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-controller="Alunos"
+                                       asp-action="MapaPresencas">
+                                        Presenças
+                                    </a>
+                                </li>
+                            }
+                        }
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="ConteudoTeorico" asp-action="Index">Conteúdo Teórico</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Horarios" asp-action="Semana">Horarios</a>
                         </li>
                     </ul>
                     <partial name="_LoginPartial" />

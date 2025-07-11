@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace eDrive3.Models
 {
@@ -18,16 +19,26 @@ namespace eDrive3.Models
         //Tipo de aula (Teórica ou prática)
         [Required]
         public TipoAula Tipo { get; set; }
+        
+        //Numero da aula
+        [Required]
+        [Range(1, 32)]
+        public int Numero { get; set; }          // 1‑28 ou 1‑32 consoante o Tipo
+
+        //Codigo para marcara presença
+        [MaxLength(10)]
+        public string? Codigo { get; set; }       // será uma string aleatória de 10 caracteres
 
 
 
 
-        // Foreign key
-        public int InstructorId { get; set; }
-        public Instrutor Instrutor { get; set; }
+        // Foreign keys
+        public int InstrutorID { get; set; }
+        public Instrutor? Instrutor { get; set; }
+
 
         // Navigation property
-        public ICollection<Presenca> Presencas { get; set; }
+        public ICollection<Presenca> Presencas { get; set; } = new List<Presenca>();
 
 
 

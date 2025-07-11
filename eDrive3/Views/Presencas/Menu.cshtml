@@ -1,0 +1,31 @@
+﻿@model eDrive3.Models.MarcarPresencaMenuViewModel
+
+@{
+    ViewData["Title"] = "Marcar Presença - Escolher Aula";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<h3>Aulas Teóricas</h3>
+<ul>
+    @foreach (var num in Model.AulasTeoricas)
+    {
+        <li>
+            <a asp-action="MarcarPorNumero" asp-route-tipo="Teórica" asp-route-numero="@num">
+                Aula Teórica nº @num
+            </a>
+        </li>
+    }
+</ul>
+
+<h3>Aulas Práticas</h3>
+<ul>
+    @foreach (var num in Model.AulasPraticas)
+    {
+        <li>
+            <a asp-action="MarcarPorNumero" asp-route-tipo="Prática" asp-route-numero="@num">
+                Aula Prática nº @num
+            </a>
+        </li>
+    }
+</ul>

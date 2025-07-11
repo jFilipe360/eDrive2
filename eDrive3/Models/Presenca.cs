@@ -14,7 +14,7 @@
         public int AlunoID { get; set; }
         public Aluno Aluno { get; set; }
 
-        // Foreign key da lição
+        // Foreign key da aula
         public int AulaID { get; set; }
         public Aula Aula { get; set; }
 
@@ -23,6 +23,7 @@
         //Lista de estados para uma aula
         public enum ListaEstados
         {
+            Indefinido,
             Presente,
             Faltou,
             Concluíu

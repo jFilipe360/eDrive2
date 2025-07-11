@@ -29,3 +29,33 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.saturday-afternoon {
+    background-color: #ffcccc !important; /* Vermelho palido */
+}
+
+.lunch-time {
+    background-color: #ccccff !important; /* Azul claro */
+}
+
+.white-background {
+    background-color: white !important; /* Fundo branco */
+}
+
+.legend {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+}

@@ -1,22 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using eDrive3.Data;
+using eDrive3.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using eDrive3.Data;
-using eDrive3.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace eDrive3.Controllers
 {
     public class AlunosController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AlunosController(ApplicationDbContext context)
+        public AlunosController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Alunos
@@ -131,6 +135,33 @@ namespace eDrive3.Controllers
         private bool AlunoExists(int id)
         {
             return _context.Alunos.Any(e => e.AlunoID == id);
+        }
+
+        //Função para mostrar as presenças do aluno
+        [Authorize(Roles = "Aluno")]
+        public async Task<IActionResult> MapaPresencas()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var numeros = Enumerable.Range(1, 28).ToList();
+
+            var presencas = await _context.Presencas
+                .Include(p => p.Aula)
+                .Where(p => p.AlunoID == user.AlunoID
+                         && p.Aula.Tipo == Aula.TipoAula.Teórica
+                         && p.Estado == Presenca.ListaEstados.Presente)
+                .ToListAsync();
+
+            var presentesPorNumero = new HashSet<int>(presencas.Select(p => p.Aula.Numero));
+
+            // Adicionar logs para depuração
+            Console.WriteLine("Presenças: " + string.Join(", ", presentesPorNumero));
+
+            ViewBag.Numeros = numeros;
+            ViewBag.PresentesPorNumero = presentesPorNumero;
+
+            return View();
         }
     }
 }

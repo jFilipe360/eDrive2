@@ -1,0 +1,33 @@
+﻿@model eDrive3.Models.Aula
+
+@{
+    ViewData["Title"] = "Marcar Presença";
+}
+
+<form asp-controller="Presencas" asp-action="MarcarPresenca" method="post" class="form-inline">
+    <div class="mb-3">
+        <label asp-for="Codigo" class="form-label">Código da Aula</label>
+        <input asp-for="Codigo" name="codigo" class="form-control" placeholder="Código da aula" required />
+        <span asp-validation-for="Codigo" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-success">Marcar Presença</button>
+</form>
+
+<div id="msg"></div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const form = document.querySelector('form');
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(form);
+            const resp = await fetch(form.action, { method: 'POST', body: fd });
+            const text = await resp.text();
+            document.getElementById('msg').textContent = text;
+        });
+    </script>
+}

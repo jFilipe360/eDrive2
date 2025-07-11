@@ -31,6 +31,6 @@ namespace eDrive3.Models
 
 
         // Navigation property
-        public ICollection<Aula> Aulas { get; set; }
+        public ICollection<Aula> Aulas { get; set; } = new List<Aula>();
     }
 }

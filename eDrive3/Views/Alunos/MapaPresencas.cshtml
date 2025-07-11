@@ -1,0 +1,38 @@
+﻿@{
+    var presentes = ViewBag.PresentesPorNumero as HashSet<int> ?? new HashSet<int>();
+    var numeros = ViewBag.Numeros as List<int> ?? Enumerable.Range(1, 28).ToList();
+}
+
+<h1>Marcar Presenças</h1>
+
+<h3>Aulas teóricas</h3>
+
+<table class="table table-bordered text-center" style="max-width:600px;">
+    @for (int row = 0; row < 7; row++)
+    {
+        <tr>
+            @for (int col = 0; col < 4; col++)
+            {
+                int numero = row * 4 + col + 1;
+                bool presente = presentes.Contains(numero);
+                string bgColor = presente ? "#3bb54a" : "#ffe066";
+
+                <td style="background:@bgColor; font-weight:600; width:60px; height:60px; vertical-align:middle;">
+                    @if (presente)
+                    {
+                        @numero
+                    }
+                    else
+                    {
+                        <a asp-controller="Presencas"
+                           asp-action="MarcarPorNumero"
+                           asp-route-numero="@numero"
+                           style="display:block; color:black; text-decoration:none;">
+                            @numero
+                        </a>
+                    }
+                </td>
+            }
+        </tr>
+    }
+</table>
