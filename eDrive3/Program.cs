@@ -47,6 +47,9 @@ app.MapControllerRoute(
 app.MapRazorPages()
    .WithStaticAssets();
 
+app.MapGet("/Identity/Account/Register", () => Results.NotFound());
+app.MapPost("/Identity/Account/Register", () => Results.NotFound());
+
 using (var scope = app.Services.CreateScope())
 {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
