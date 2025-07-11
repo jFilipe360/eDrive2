@@ -38,9 +38,9 @@ body {
     background-color: #ccccff !important; /* Azul claro */
 }
 
-.white-background {
-    background-color: white !important; /* Fundo branco */
-}
+/*.white-background {
+    background-color: white !important;*/ /* Fundo branco */
+/*}*/
 
 .legend {
     display: flex;
@@ -58,4 +58,26 @@ body {
     height: 20px;
     margin-right: 5px;
     border: 1px solid #ccc;
+}
+
+.slot-free {
+    cursor: pointer !important;
+}
+
+.slot-booked {
+    background-color: #ffff99 !important;
+}
+
+.slot-booked span {
+    font-weight: 600 !important;
+}
+
+.slot-booked ul {
+    background-color: #ffff99 !important;
+    margin: 0;
+    padding: 0;
+}
+
+.slot-booked li {
+    background-color: transparent; /* para garantir que não sobrescreve */
 }

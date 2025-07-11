@@ -144,22 +144,30 @@ namespace eDrive3.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            var numeros = Enumerable.Range(1, 28).ToList();
+            var numerosTeoricos = Enumerable.Range(1, 28).ToList();
+            var numerosPraticos = Enumerable.Range(1, 32).ToList();
 
-            var presencas = await _context.Presencas
+            var presencasTeoricas = await _context.Presencas
                 .Include(p => p.Aula)
                 .Where(p => p.AlunoID == user.AlunoID
                          && p.Aula.Tipo == Aula.TipoAula.Teórica
                          && p.Estado == Presenca.ListaEstados.Presente)
                 .ToListAsync();
 
-            var presentesPorNumero = new HashSet<int>(presencas.Select(p => p.Aula.Numero));
+            var presencasPraticas = await _context.Presencas
+                .Include(p => p.Aula)
+                .Where(p => p.AlunoID == user.AlunoID
+                         && p.Aula.Tipo == Aula.TipoAula.Prática
+                         && p.Estado == Presenca.ListaEstados.Presente)
+                .ToListAsync();
 
-            // Adicionar logs para depuração
-            Console.WriteLine("Presenças: " + string.Join(", ", presentesPorNumero));
+            var presentesPorNumeroTeorico = new HashSet<int>(presencasTeoricas.Select(p => p.Aula.Numero));
+            var presentesPorNumeroPratico = new HashSet<int>(presencasPraticas.Select(p => p.Aula.Numero));
 
-            ViewBag.Numeros = numeros;
-            ViewBag.PresentesPorNumero = presentesPorNumero;
+            ViewBag.NumerosTeoricos = numerosTeoricos;
+            ViewBag.PresentesPorNumeroTeorico = presentesPorNumeroTeorico;
+            ViewBag.NumerosPraticos = numerosPraticos;
+            ViewBag.PresentesPorNumeroPratico = presentesPorNumeroPratico;
 
             return View();
         }

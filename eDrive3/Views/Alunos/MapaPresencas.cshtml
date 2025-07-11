@@ -1,12 +1,13 @@
 ﻿@{
-    var presentes = ViewBag.PresentesPorNumero as HashSet<int> ?? new HashSet<int>();
-    var numeros = ViewBag.Numeros as List<int> ?? Enumerable.Range(1, 28).ToList();
+    var presentesTeoricos = ViewBag.PresentesPorNumeroTeorico as HashSet<int> ?? new HashSet<int>();
+    var numerosTeoricos = ViewBag.NumerosTeoricos as List<int> ?? Enumerable.Range(1, 28).ToList();
+    var presentesPraticos = ViewBag.PresentesPorNumeroPratico as HashSet<int> ?? new HashSet<int>();
+    var numerosPraticos = ViewBag.NumerosPraticos as List<int> ?? Enumerable.Range(1, 32).ToList();
 }
 
 <h1>Marcar Presenças</h1>
 
-<h3>Aulas teóricas</h3>
-
+<h3>Aulas Teóricas</h3>
 <table class="table table-bordered text-center" style="max-width:600px;">
     @for (int row = 0; row < 7; row++)
     {
@@ -14,10 +15,9 @@
             @for (int col = 0; col < 4; col++)
             {
                 int numero = row * 4 + col + 1;
-                bool presente = presentes.Contains(numero);
+                bool presente = presentesTeoricos.Contains(numero);
                 string bgColor = presente ? "#3bb54a" : "#ffe066";
-
-                <td style="background:@bgColor; font-weight:600; width:60px; height:60px; vertical-align:middle;">
+                <td style="background-color:@bgColor; font-weight:600; width:60px; height:60px; vertical-align:middle;">
                     @if (presente)
                     {
                         @numero
@@ -31,6 +31,24 @@
                             @numero
                         </a>
                     }
+                </td>
+            }
+        </tr>
+    }
+</table>
+
+<h3>Aulas Práticas</h3>
+<table class="table table-bordered text-center" style="max-width:600px;">
+    @for (int row = 0; row < 8; row++)
+    {
+        <tr>
+            @for (int col = 0; col < 4; col++)
+            {
+                int numero = row * 4 + col + 1;
+                bool presente = presentesPraticos.Contains(numero);
+                string bgColor = presente ? "#3bb54a" : "#ffe066";
+                <td style="background-color:@bgColor; font-weight:600; width:60px; height:60px; vertical-align:middle;">
+                    @numero
                 </td>
             }
         </tr>
