@@ -186,21 +186,23 @@ namespace eDrive3.Controllers
         {
             if (vm is null) return BadRequest();
 
-            // ----- aluno autenticado -----
+            //aluno autenticado
             var user = await _userManager.GetUserAsync(User);
             var aluno = await _context.Alunos.FirstOrDefaultAsync(a => a.AlunoID == user.AlunoID);
             if (aluno == null) return Unauthorized();
 
-            // ----- data/hora pedidas -----
+            //data e hora pedidas
             if (!DateTime.TryParse($"{vm.Date} {vm.Hour}:00", out var dtInicio))
                 return BadRequest("Data inválida.");
             var dtFim = dtInicio.AddHours(1);
 
-            // ----- slot já ocupado pelo instrutor? -----
-            bool ocupado = await _context.Aulas.AnyAsync(a =>
-                a.InstrutorID == vm.InstrutorId &&
-                a.LessonDate >= dtInicio && a.LessonDate < dtFim);
-            if (ocupado) return Conflict("Slot já ocupado.");
+            //Verificar se o bloco pertence ao passado, impossibilitando de reservar nova aula
+            if (dtInicio < DateTime.Now)
+                return Conflict("Não é possível reservar aulas em blocos horários já decorridos.");
+
+            //slot já está ocupado?
+            if (await BlocoOcupado(dtInicio, vm.InstrutorId))
+                return Conflict("Já existe uma aula nesse bloco horário.");
 
             // ----- conta aulas práticas do aluno (via Presencas) -----
             var presencasPraticas = _context.Presencas
@@ -217,9 +219,20 @@ namespace eDrive3.Controllers
             // total 32?
             int totalCount = await presencasPraticas.CountAsync();
             if (totalCount >= 32)
-                return Conflict("Já completou as 32 aulas práticas.");
+                return Conflict("Já reservou 32 aulas práticas.");
 
-            int proximoNumero = totalCount + 1;   // 1 … 32
+            //a reserva só é feita depois da ultima aula reservada
+            DateTime? ultimaAula = await presencasPraticas
+                .Select(p => p.Aula.LessonDate)
+                .OrderByDescending(d => d)
+                .FirstOrDefaultAsync();
+            if (ultimaAula is not null && dtInicio <= ultimaAula.Value)
+                return Conflict($"A sua última aula prática é em {ultimaAula:dd/MM/yyyy HH:mm}. "
+                              + "Só pode marcar aulas posteriores.");
+
+            //calculo do nr da próxima aula
+            int proximoNumero = (ultimaAula == null) ? 1   // nenhuma ainda
+                     : await presencasPraticas.CountAsync() + 1;   // 1 … 32
 
             // ----- criar Aula -----
             var aula = new Aula
@@ -234,16 +247,22 @@ namespace eDrive3.Controllers
             await _context.SaveChangesAsync();    // obtém AulaID
 
             // ----- criar Presenca que liga aluno ↔ aula -----
-            var presenca = new Presenca
+            _context.Presencas.Add(new Presenca
             {
                 AlunoID = aluno.AlunoID,
                 AulaID = aula.AulaID,
                 Estado = Presenca.ListaEstados.Indefinido
-            };
-            _context.Presencas.Add(presenca);
+            });
             await _context.SaveChangesAsync();
 
             return Ok(new { alunoNome = aluno.NomeCompleto });
+        }
+
+        private async Task<bool> BlocoOcupado(DateTime inicio, int instrutorId)
+        {
+            DateTime fim = inicio.AddHours(1);
+            return await _context.Aulas.AnyAsync(a =>
+                a.LessonDate >= inicio && a.LessonDate < fim);
         }
     }
 }

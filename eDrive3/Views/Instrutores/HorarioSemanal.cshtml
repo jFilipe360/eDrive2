@@ -6,6 +6,8 @@
     var horas      = Enumerable.Range(9, 11).ToList();                // 9…19
     var instrutor  = (Instrutor)ViewBag.Instrutor!;
     bool eAluno    = User.IsInRole("Aluno");
+
+    ViewData["Title"] = "Horário Pessoal";
 }
 
 <h2>Horário Semanal de @instrutor.Name</h2>

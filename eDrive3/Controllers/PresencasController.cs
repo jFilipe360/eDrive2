@@ -32,7 +32,10 @@ namespace eDrive3.Controllers
                 .ToListAsync();
 
             if (!aulas.Any())
-                return NotFound();
+            {
+                TempData["Error"] = $"A aula teórica nº {numero} ainda não foi criada.";
+                return RedirectToAction("MapaPresencas", "Alunos");
+            }
 
             var vm = new MarcarPorNumeroViewModel
             {

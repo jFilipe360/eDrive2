@@ -63,28 +63,69 @@ namespace eDrive3.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("LessonDate,Duration,Tipo,Numero,InstrutorID")] Aula aula)
+        public async Task<IActionResult> Create(
+        [Bind("LessonDate,Duration,Tipo,Numero,InstrutorID")] Aula aula)
         {
+            /* ───────────────────────── 1. Campos gerados pelo sistema ───────────────────── */
             aula.Codigo = GenerateCode(10);
             aula.Presencas = new List<Presenca>();
+            aula.Duration = 60;                              // sempre 60 min
 
-            //Valida se a aula é teórica ou prática
-            int max = aula.Tipo == Aula.TipoAula.Teórica ? 28 : 32;
-            if (aula.Numero < 1 || aula.Numero > max)
+            /* ───────────────────────── 2. Validações de regras de negócio ───────────────── */
+
+            // 2‑a) limite de número por tipo
+            int maxNumero = (aula.Tipo == Aula.TipoAula.Teórica) ? 28 : 32;
+            if (aula.Numero < 1 || aula.Numero > maxNumero)
                 ModelState.AddModelError(nameof(aula.Numero),
-                    $"Para {aula.Tipo} o número deve estar entre 1 e {max}.");
+                    $"Para {aula.Tipo} o número deve estar entre 1 e {maxNumero}.");
 
-            //Garante que não há aulas repetidas
-            bool exists = await _context.Aulas
-                .AnyAsync(a => a.Tipo == aula.Tipo
-                           && a.Numero == aula.Numero
-                           && a.LessonDate.Date == aula.LessonDate.Date);
-            if (exists)
+            // 2‑b) bloco de 1 h já ocupado por QUALQUER aula (T ou P)
+            DateTime blocoFim = aula.LessonDate.AddHours(1);
+            bool blocoOcupado = await _context.Aulas.AnyAsync(a =>
+                a.LessonDate >= aula.LessonDate && a.LessonDate < blocoFim);
+            if (blocoOcupado)
+                ModelState.AddModelError(nameof(aula.LessonDate),
+                    "Já existe uma aula (teórica ou prática) neste bloco horário.");
+
+            // 2‑c) evitar duplicar (tipo,número) no MESMO dia
+            bool numRepetido = await _context.Aulas.AnyAsync(a =>
+                a.Tipo == aula.Tipo &&
+                a.Numero == aula.Numero &&
+                a.LessonDate.Date == aula.LessonDate.Date);
+            if (numRepetido)
                 ModelState.AddModelError(nameof(aula.Numero),
-                    "Já existe uma aula com este número para esse tipo.");
+                    "Já existe uma aula com esse número nesse dia.");
 
+            // 2‑d) sequência cronológica para aulas PRÁTICAS
+            if (aula.Tipo == Aula.TipoAula.Prática)
+            {
+                int ultimoNumero = await _context.Aulas
+                    .Where(a => a.Tipo == Aula.TipoAula.Prática)
+                    .OrderByDescending(a => a.LessonDate)
+                    .Select(a => a.Numero)
+                    .FirstOrDefaultAsync();          // 0 se não existir nenhuma
+
+                DateTime? ultimoHorario = await _context.Aulas
+                    .Where(a => a.Tipo == Aula.TipoAula.Prática)
+                    .OrderByDescending(a => a.LessonDate)
+                    .Select(a => a.LessonDate)
+                    .FirstOrDefaultAsync();
+
+                // número tem de ser imediatamente a seguir
+                if (aula.Numero != ultimoNumero + 1)
+                    ModelState.AddModelError(nameof(aula.Numero),
+                        $"O próximo número válido é {ultimoNumero + 1}.");
+
+                // horário tem de ser depois da última prática
+                if (ultimoHorario is not null && aula.LessonDate <= ultimoHorario.Value)
+                    ModelState.AddModelError(nameof(aula.LessonDate),
+                        $"A última aula prática é em {ultimoHorario:dd/MM/yyyy HH:mm}. Escolha um horário posterior.");
+            }
+
+            /* ───────────────────────── 3. Se falhou, volta para o ecrã ───────────────────── */
             if (!ModelState.IsValid)
             {
+                // recarrega lista de instrutores
                 ViewBag.InstructorList = _context.Instrutores
                     .Select(i => new SelectListItem
                     {
@@ -95,6 +136,7 @@ namespace eDrive3.Controllers
                 return View(aula);
             }
 
+            /* ───────────────────────── 4. Gravação ───────────────────────────────────────── */
             _context.Add(aula);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

@@ -3,6 +3,8 @@
     var ini = (DateTime)ViewBag.Inicio;
     var dias = Enumerable.Range(0, 7).Select(d => ini.AddDays(d)).ToList();
     var horas = Enumerable.Range(9, 11).ToList(); // 9…19
+
+    ViewData["Title"] = "Horário Semanal";
 }
 
 <h2>Horário da Semana: @(ini.ToString("dd/MM")) – @(ini.AddDays(6).ToString("dd/MM"))</h2>
@@ -57,7 +59,7 @@
                                 {
                                     <li>
                                         <strong>@(aula.Tipo == Aula.TipoAula.Teórica ? "T" : "P")-@aula.Numero</strong><br />
-                                        Instr.: @aula.Instrutor?.Name
+                                        Instrutor: @aula.Instrutor?.Name
                                     </li>
                                 }
                             </ul>
