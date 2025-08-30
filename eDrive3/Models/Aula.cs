@@ -29,6 +29,8 @@ namespace eDrive3.Models
         [MaxLength(10)]
         public string? Codigo { get; set; }       // será uma string aleatória de 10 caracteres
 
+        public bool Confirmada { get; set; } = false;
+
 
 
 

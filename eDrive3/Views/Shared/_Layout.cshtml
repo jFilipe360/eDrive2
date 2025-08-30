@@ -37,6 +37,33 @@
                                     </a>
                                 </li>
                             }
+                            @if (User.IsInRole("Secretaria"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-controller="Aulas"
+                                       asp-action="Create">
+                                        Marcar Aulas
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                        asp-controller="Secretarias"
+                                        asp-action="ReservasPendentes">
+                                        Confirmar Aulas Práticas
+                                    </a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Instrutor"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                       asp-controller="Instrutores"
+                                       asp-action="CodigoAulas">
+                                        Código das Aulas Teóricas
+                                    </a>
+                                </li>
+                            }
                         }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="ConteudoTeorico" asp-action="Index">Conteúdo Teórico</a>

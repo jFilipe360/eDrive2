@@ -1,7 +1,7 @@
 ﻿@{
-    var presentesTeoricos = ViewBag.PresentesPorNumeroTeorico as HashSet<int> ?? new HashSet<int>();
+    var presencasTeoricas = ViewBag.PresentesPorNumeroTeorico as HashSet<int> ?? new HashSet<int>();
     var numerosTeoricos = ViewBag.NumerosTeoricos as List<int> ?? Enumerable.Range(1, 28).ToList();
-    var presentesPraticos = ViewBag.PresentesPorNumeroPratico as HashSet<int> ?? new HashSet<int>();
+    var presencasPraticas = ViewBag.PresentesPorNumeroPratico as HashSet<int> ?? new HashSet<int>();
     var numerosPraticos = ViewBag.NumerosPraticos as List<int> ?? Enumerable.Range(1, 32).ToList();
     var errorMsg = TempData["Error"] as string;
 
@@ -39,7 +39,7 @@
             @for (int col = 0; col < 4; col++)
             {
                 int numero = row * 4 + col + 1;
-                bool presente = presentesTeoricos.Contains(numero);
+                bool presente = presencasTeoricas.Contains(numero);
                 string bgColor = presente ? "#3bb54a" : "#ffe066";
                 <td style="background-color:@bgColor; font-weight:600; width:60px; height:60px; vertical-align:middle;">
                     @if (presente)
@@ -69,8 +69,8 @@
             @for (int col = 0; col < 4; col++)
             {
                 int numero = row * 4 + col + 1;
-                bool presente = presentesPraticos.Contains(numero);
-                string bgColor = presente ? "#3bb54a" : "#ffe066";
+                bool presente = presencasPraticas.Contains(numero);
+                string bgColor = presente ? "#3bb54a" : "#ffe066"; // verde se presença confirmada, amarelo se ainda não
                 <td style="background-color:@bgColor; font-weight:600; width:60px; height:60px; vertical-align:middle;">
                     @numero
                 </td>

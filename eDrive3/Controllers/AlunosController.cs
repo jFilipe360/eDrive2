@@ -158,7 +158,7 @@ namespace eDrive3.Controllers
                 .Include(p => p.Aula)
                 .Where(p => p.AlunoID == user.AlunoID
                          && p.Aula.Tipo == Aula.TipoAula.Prática
-                         && p.Estado == Presenca.ListaEstados.Presente)
+                         && p.Estado == Presenca.ListaEstados.Concluíu)
                 .ToListAsync();
 
             var presentesPorNumeroTeorico = new HashSet<int>(presencasTeoricas.Select(p => p.Aula.Numero));

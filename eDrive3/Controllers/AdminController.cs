@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace eDrive3.Controllers
 {
-    [Authorize(Roles = "Admin")]  // Only admins can access
+    [Authorize(Roles = "Admin")]  // Acesso apenas para admin
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

@@ -241,7 +241,8 @@ namespace eDrive3.Controllers
                 LessonDate = dtInicio,
                 Duration = 60,
                 Tipo = Aula.TipoAula.Prática,
-                Numero = proximoNumero
+                Numero = proximoNumero,
+                Confirmada = false
             };
             _context.Aulas.Add(aula);
             await _context.SaveChangesAsync();    // obtém AulaID

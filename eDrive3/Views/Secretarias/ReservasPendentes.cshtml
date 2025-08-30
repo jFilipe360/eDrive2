@@ -1,0 +1,23 @@
+﻿@model IEnumerable<Aula>
+<h2>Reservas Pendentes</h2>
+<table class="table">
+    <tr><th>Data</th><th>Instrutor</th><th>Aluno</th><th></th></tr>
+    @foreach (var a in Model)
+    {
+        var aluno = a.Presencas.FirstOrDefault()?.Aluno?.NomeCompleto;
+        <tr>
+            <td>@a.LessonDate</td>
+            <td>@a.Instrutor?.Name</td>
+            <td>@aluno</td>
+            <td>@a.Numero</td>
+            <td>
+                <form asp-action="Confirmar" asp-route-id="@a.AulaID" method="post" class="d-inline">
+                    <button class="btn btn-success btn-sm">Confirmar</button>
+                </form>
+                <form asp-action="Rejeitar" asp-route-id="@a.AulaID" method="post" class="d-inline">
+                    <button class="btn btn-danger btn-sm">Rejeitar</button>
+                </form>
+            </td>
+        </tr>
+    }
+</table>

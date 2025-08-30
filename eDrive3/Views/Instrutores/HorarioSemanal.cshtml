@@ -39,44 +39,55 @@
                 {
                     /* ---------- cores fixas ---------- */
                     bool isSatAfternoon = dia.DayOfWeek == DayOfWeek.Saturday && h >= 13;
-                    bool isSunday       = dia.DayOfWeek == DayOfWeek.Sunday;
-                    bool isLunchTime    = dia.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday) && h == 13;
-
-                    string cellClass = "white-background";
-                    if (isSatAfternoon || isSunday) cellClass = "saturday-afternoon";
-                    else if (isLunchTime)           cellClass = "lunch-time";
+                    bool isSunday = dia.DayOfWeek == DayOfWeek.Sunday;
+                    bool isLunchTime = dia.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday) && h == 13;
 
                     /* ---------- aulas do instrutor ---------- */
                     var aulasHora = Model
-                        .Where(a => a.LessonDate.Date == dia.Date &&
-                                    a.LessonDate.TimeOfDay >= horaIni &&
-                                    a.LessonDate.TimeOfDay < horaFim)
-                        .OrderBy(a => a.Tipo)
-                        .ToList();
+                    .Where(a => a.LessonDate.Date == dia.Date &&
+                    a.LessonDate.TimeOfDay >= horaIni &&
+                    a.LessonDate.TimeOfDay < horaFim)
+                    .OrderBy(a => a.Tipo)
+                    .ToList();
 
-                    bool slotLivre = !aulasHora.Any() && !isSatAfternoon && !isSunday && !isLunchTime;
-                    if (slotLivre) cellClass = "slot-free";
-                    if (aulasHora.Any()) cellClass = "slot-booked";
-                <td class="@cellClass"
-                    style="min-width:120px; vertical-align:top; font-size:0.85em"
-                    data-date="@dia.ToString("yyyy-MM-dd")"
-                    data-hora="@h"
-                    data-instrutor="@instrutor.InstrutorID">
-                    @if (aulasHora.Any())
+                    /* ---------- definir classe da célula ---------- */
+                    string cellClass;
+                    if (!aulasHora.Any())                 // slot vazio
                     {
-                        <ul class="list-unstyled m-0 p-0">
-                            @foreach (var aula in aulasHora)
-                            {
-                                    var alunoNome = aula.Presencas.FirstOrDefault()?.Aluno?.NomeCompleto;
+                        if (isSatAfternoon || isSunday) cellClass = "saturday-afternoon";
+                        else if (isLunchTime) cellClass = "lunch-time";
+                        else cellClass = "slot-free";
+                    }
+                    else                                   // pelo menos uma aula
+                    {
+                        var aula = aulasHora.First();       // 1 prática (ou várias T)
+                        if (aula.Tipo == Aula.TipoAula.Prática)
+                            cellClass = aula.Confirmada ? "slot-confirmed" : "slot-booked";
+                        else
+                            cellClass = "slot-booked";      // teóricas sempre amarelo
+                    }
 
+                    /* ---------- célula ---------- */
+                    <td class="@cellClass"
+                        style="min-width:120px; vertical-align:top; font-size:0.85em"
+                        data-date="@dia.ToString("yyyy-MM-dd")"
+                        data-hora="@h"
+                        data-instrutor="@instrutor.InstrutorID">
+
+                        @if (aulasHora.Any())
+                        {
+                            <ul class="list-unstyled m-0 p-0">
+                                @foreach (var aula in aulasHora)
+                                {
+                                    var alunoNome = aula.Presencas.FirstOrDefault()?.Aluno?.NomeCompleto;
                                     <li>
-                                        <strong>@(aula.Tipo == Aula.TipoAula.Teórica ? "T" : "P")-@aula.Numero</strong><br />
+                                        <strong>@(aula.Tipo == Aula.TipoAula.Teórica ? "T" : "P")‑@aula.Numero</strong><br />
                                         <span>@alunoNome</span>
                                     </li>
-                            }
-                        </ul>
-                    }
-                </td>
+                                }
+                            </ul>
+                        }
+                    </td>
                 }
             </tr>
         }
@@ -88,6 +99,7 @@
     <div class="legend-item"><div class="legend-color lunch-time"></div><span>Hora de Almoço</span></div>
     <div class="legend-item"><div class="legend-color saturday-afternoon"></div><span>Fechado</span></div>
     <div class="legend-item"><div class="legend-color slot-booked"></div><span>Reservado</span></div>
+    <div class="legend-item"><div class="legend-color green"></div><span>Confirmada</span></div>
 </div>
 
 <div class="mt-3">
@@ -113,7 +125,7 @@
         <script>
             $(function () {
 
-                function formatDateToPtBr(dateStr) {
+                function formatDate(dateStr) {
                     const parts = dateStr.split('-');
                     return `${parts[2]}/${parts[1]}/${parts[0]}`;
                 }
@@ -136,7 +148,7 @@
                   <div class="modal-header"><h5 class="modal-title">Marcar aula prática?</h5></div>
                   <div class="modal-body">
                       <p>Quer reservar a aula prática para<br>
-                         <strong>${formatDateToPtBr(data.date)} às ${data.hour}:00</strong>?</p>
+                         <strong>${formatDate(data.date)} às ${data.hour}:00</strong>?</p>
                   </div>
                   <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
