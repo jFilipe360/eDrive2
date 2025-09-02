@@ -1,0 +1,65 @@
+﻿@model List<eDrive3.Models.Aula>
+
+<h1>Aulas Teóricas - Aula @ViewBag.NumeroAula</h1>
+
+@if (!Model.Any())
+{
+    <p>Não existem aulas com este número.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Código</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var aula in Model)
+            {
+                <tr>
+                    <td>@aula.LessonDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@aula.Codigo</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm"
+                                onclick="showCodigo('@aula.Codigo')">
+                            Mostrar Código
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-action="CodigoAulas">Voltar</a>
+
+<!-- Modal -->
+<div class="modal fade" id="codigoModal" tabindex="-1" aria-labelledby="codigoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-header">
+                <h5 class="modal-title" id="codigoModalLabel">Código da Aula</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <span id="codigoTexto" style="font-size: 2rem; font-weight: bold;"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showCodigo(codigo) {
+            document.getElementById('codigoTexto').innerText = codigo;
+            var myModal = new bootstrap.Modal(document.getElementById('codigoModal'));
+            myModal.show();
+        }
+    </script>
+}

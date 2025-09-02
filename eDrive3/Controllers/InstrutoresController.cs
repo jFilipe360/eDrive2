@@ -265,5 +265,26 @@ namespace eDrive3.Controllers
             return await _context.Aulas.AnyAsync(a =>
                 a.LessonDate >= inicio && a.LessonDate < fim);
         }
+
+        // GET: Lista a dropdown
+        public IActionResult CodigoAulas()
+        {
+            ViewBag.Aulas = Enumerable.Range(1, 28).ToList();
+            return View();
+        }
+
+
+        // Mostra todas as aulas teóricas para um número selecionado
+        public async Task<IActionResult> CodAula(int numero)
+        {
+
+            var aulas = await _context.Aulas
+                .Where(a => a.Tipo == Aula.TipoAula.Teórica && a.Numero == numero)
+                .OrderBy(a => a.LessonDate)
+                .ToListAsync();
+
+            ViewBag.NumeroAula = numero;
+            return View(aulas);
+        }
     }
 }
