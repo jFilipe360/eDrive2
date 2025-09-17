@@ -20,12 +20,11 @@ namespace eDrive3.Models
 
         //Email do instrutor
         [Required]
-        [DisplayName("Email")]
         public string Email { get; set; }
 
         //Número de telemóvel do instrutor
         [Required]
-        [DisplayName("Número de Telemóvel")]
+        [DisplayName("Número de telemóvel")]
         public string NrTelemovel { get; set; }
 
 

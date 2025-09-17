@@ -1,4 +1,6 @@
-﻿namespace eDrive3.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eDrive3.Models
 {
     public class CreateUserVm
     {

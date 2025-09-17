@@ -9,6 +9,7 @@ namespace eDrive3.Models
 
         [Required(ErrorMessage = "O código é obrigatório")]
         [StringLength(10, ErrorMessage = "O código deve ter até 10 caracteres")]
+        [Display(Name = "Código")]
         public string Codigo { get; set; }
 
         public List<Aula> Aulas { get; set; }

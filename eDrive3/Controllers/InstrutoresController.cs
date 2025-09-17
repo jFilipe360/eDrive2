@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using QRCoder;
 
 namespace eDrive3.Controllers
 {
@@ -25,6 +28,7 @@ namespace eDrive3.Controllers
         }
 
         // GET: Instrutores
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Instrutores.ToListAsync());
@@ -37,6 +41,7 @@ namespace eDrive3.Controllers
         }
 
         // GET: Instrutores/Details/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -54,8 +59,9 @@ namespace eDrive3.Controllers
             return View(instrutor);
         }
 
-        
+
         // GET: Instrutors/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -76,6 +82,7 @@ namespace eDrive3.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("InstrutorID,Name,FotoUrl,Email,NrTelemovel")] Instrutor instrutor)
         {
             if (id != instrutor.InstrutorID)
@@ -107,6 +114,7 @@ namespace eDrive3.Controllers
         }
 
         // GET: Instrutors/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -127,6 +135,7 @@ namespace eDrive3.Controllers
         // POST: Instrutors/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var instrutor = await _context.Instrutores.FindAsync(id);
@@ -285,6 +294,21 @@ namespace eDrive3.Controllers
 
             ViewBag.NumeroAula = numero;
             return View(aulas);
+        }
+
+        public IActionResult QrCode(int id)
+        {
+            var aula = _context.Aulas.FirstOrDefault(a => a.AulaID == id);
+            if (aula == null || string.IsNullOrEmpty(aula.Codigo))
+                return NotFound("Aula ou código não encontrado.");
+
+            // Gerar QR Code (versão moderna sem System.Drawing)
+            var qrGenerator = new QRCodeGenerator();
+            var qrCodeData = qrGenerator.CreateQrCode(aula.Codigo, QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new PngByteQRCode(qrCodeData);
+            var qrCodeAsPng = qrCode.GetGraphic(20);  // devolve diretamente um byte[]
+
+            return File(qrCodeAsPng, "image/png");
         }
     }
 }

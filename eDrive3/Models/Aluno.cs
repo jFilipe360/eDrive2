@@ -33,5 +33,6 @@ namespace eDrive3.Models
 
         //Lista de presenças do aluno
         public ICollection<Presenca> Presencas { get; set; }
+
     }
 }

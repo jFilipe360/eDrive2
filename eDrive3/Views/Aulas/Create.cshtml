@@ -26,7 +26,7 @@
                 <label asp-for="Numero" class="control-label"></label>
                 <select asp-for="Numero" id="numero-select" class="form-control">
                     <!-- sempre 1‑32, JS esconde 29‑32 se for Teórica -->
-                    @for (var i = 1; i <= 32; i++)
+                    @for (var i = 1; i <= 28; i++)
                     {
                         <option value="@i">@i</option>
                     }
@@ -55,7 +55,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script>
+    @* <script>
         // referencia aos select
         const tipoSel   = document.querySelector('[asp-for="Tipo"]')
                           || document.getElementById('Tipo');
@@ -76,5 +76,5 @@
 
         tipoSel.addEventListener('change', updateNumeroOptions);
         updateNumeroOptions(); // aplica logo ao carregar a página
-    </script>
+    </script> *@
 }

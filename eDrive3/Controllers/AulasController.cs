@@ -199,12 +199,11 @@ namespace eDrive3.Controllers
 
 
         //Gerar um código para a aula
-        private static string GenerateCode(int len = 10)
+        private static string GenerateCode(int len)
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789@$%!*?";
             var rng = new Random();
-            return new string(Enumerable.Range(0, len)
-                                        .Select(_ => chars[rng.Next(chars.Length)]).ToArray());
+            return new string(Enumerable.Range(0, len).Select(_ => chars[rng.Next(chars.Length)]).ToArray());
         }
     }
 

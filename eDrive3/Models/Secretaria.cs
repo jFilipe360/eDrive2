@@ -24,6 +24,7 @@ namespace eDrive3.Models
         //Número de telemóvel do(a) secretário(a)
 
         [Required]
+        [Display(Name = "Número de telemóvel")]
         public string NrTelemovel { get; set; }
     }
 }

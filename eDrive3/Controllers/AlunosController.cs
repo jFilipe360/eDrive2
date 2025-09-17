@@ -47,8 +47,9 @@ namespace eDrive3.Controllers
             return View(aluno);
         }
 
-        
+
         // GET: Alunos/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -69,6 +70,7 @@ namespace eDrive3.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("AlunoID,NomeCompleto,FotoUrl,Email,NrTelemovel,Morada")] Aluno aluno)
         {
             if (id != aluno.AlunoID)
@@ -100,6 +102,7 @@ namespace eDrive3.Controllers
         }
 
         // GET: Alunos/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -120,6 +123,7 @@ namespace eDrive3.Controllers
         // POST: Alunos/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var aluno = await _context.Alunos.FindAsync(id);
