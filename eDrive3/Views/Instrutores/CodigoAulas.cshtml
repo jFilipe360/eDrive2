@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Selecionar Aula Teórica";
+    var aulas = ViewBag.Aulas;
+}
+
+<h1>Selecionar Aula Teórica</h1>
+
+<div class="form-group">
+    <label for="aulaSelect">Selecione uma aula:</label>
+    <select class="form-control" id="aulaSelect"
+            onchange="location.href='@Url.Action("CodAula", "Instrutores")?numero=' + this.value;">
+        <option value="">-- Selecione uma aula --</option>
+        @foreach (var aula in aulas)
+        {
+            <option value="@aula">Aula @aula</option>
+        }
+    </select>
+
+</div>

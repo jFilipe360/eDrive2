@@ -1,0 +1,25 @@
+﻿@model eDrive3.Models.MarcarPorNumeroViewModel
+
+<h3>Marcar Presença - Aula Teórica Número @Model.Numero</h3>
+<p>Esta aula pode ter várias sessões. Por favor, insira o código da aula que deseja marcar:</p>
+
+<form asp-action="MarcarPorNumero" method="post">
+    <input type="hidden" asp-for="Numero" />
+    <div class="form-group">
+        <label asp-for="Codigo"></label>
+        <input asp-for="Codigo" class="form-control" />
+        <span asp-validation-for="Codigo" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Marcar Presença</button>
+</form>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info">@ViewBag.Message</div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

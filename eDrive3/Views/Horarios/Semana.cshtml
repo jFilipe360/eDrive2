@@ -1,0 +1,97 @@
+﻿@model List<Aula>
+@{
+    var ini = (DateTime)ViewBag.Inicio;
+    var dias = Enumerable.Range(0, 7).Select(d => ini.AddDays(d)).ToList();
+    var horas = Enumerable.Range(9, 11).ToList(); // 9…19
+
+    ViewData["Title"] = "Horário Semanal";
+}
+
+<h2>Horário da Semana: @(ini.ToString("dd/MM")) – @(ini.AddDays(6).ToString("dd/MM"))</h2>
+<table class="table table-bordered text-center">
+    <thead>
+        <tr>
+            <th style="width:80px"></th>
+            @foreach (var dia in dias)
+            {
+                <th>
+                    @dia.ToString("dd/MM")<br />
+                    @dia.ToString("ddd", new System.Globalization.CultureInfo("pt-PT"))
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var h in horas)
+        {
+            var horaIni = new TimeSpan(h, 0, 0);
+            var horaFim = horaIni.Add(TimeSpan.FromHours(1));
+            <tr>
+                <th>@($"{h:00}:00-{h + 1:00}:00")</th>
+                @foreach (var dia in dias)
+                {
+                    var isSaturdayAfternoon = dia.DayOfWeek == DayOfWeek.Saturday && h >= 13;
+                    var isSunday = dia.DayOfWeek == DayOfWeek.Sunday;
+                    var isLunchTime = dia.DayOfWeek != DayOfWeek.Saturday && dia.DayOfWeek != DayOfWeek.Sunday && h == 13;
+
+                    var cellClass = "white-background"; // Classe padrão para fundo branco
+                    if (isSaturdayAfternoon || isSunday)
+                    {
+                        cellClass = "saturday-afternoon";
+                    }
+                    else if (isLunchTime)
+                    {
+                        cellClass = "lunch-time";
+                    }
+
+                    var aulasHora = Model
+                    .Where(a => a.LessonDate.Date == dia.Date &&
+                    a.LessonDate.TimeOfDay >= horaIni &&
+                    a.LessonDate.TimeOfDay < horaFim)
+                    .OrderBy(a => a.Tipo)
+                    .ToList();
+
+                    <td class="@cellClass" style="min-width:120px; vertical-align:top; font-size:0.85em">
+                        @if (aulasHora.Any())
+                        {
+                            <ul class="list-unstyled m-0 p-0">
+                                @foreach (var aula in aulasHora)
+                                {
+                                    <li>
+                                        <strong>@(aula.Tipo == Aula.TipoAula.Teórica ? "T" : "P")-@aula.Numero</strong><br />
+                                        Instrutor: @aula.Instrutor?.Name
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Legenda para as cores -->
+<div class="legend">
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #ccccff;"></div>
+        <span>Hora de Almoço</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #ffcccc;"></div>
+        <span>Fechado</span>
+    </div>
+</div>
+<!--Botões para avançar ou recuar uma semana-->
+<div class="mt-3">
+    <a asp-action="Semana"
+       asp-route-ano="@System.Globalization.ISOWeek.GetYear(ini.AddDays(-7))"
+       asp-route-semanaISO="@System.Globalization.ISOWeek.GetWeekOfYear(ini.AddDays(-7))">
+        ← Semana anterior
+    </a>
+    |
+    <a asp-action="Semana"
+       asp-route-ano="@System.Globalization.ISOWeek.GetYear(ini.AddDays(7))"
+       asp-route-semanaISO="@System.Globalization.ISOWeek.GetWeekOfYear(ini.AddDays(7))">
+        Próxima semana →
+    </a>
+</div>

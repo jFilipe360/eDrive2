@@ -4,12 +4,37 @@
 
 <div class="text-center">
     <h1 class="display-4">Bem-vindo à eDrive,</h1>
-    <h2 class="display-6">a plataforma de apoio à Escola de Condução</h2>
+    <h2 class="display-6">o companion da Escola de Condução</h2>
     <img src="https://www.pngplay.com/wp-content/uploads/13/Renault-CLIO-PNG-HD-Quality.png" />
 </div>
 
-
 @if (User.IsInRole("Admin"))
+{
+    <div class="text-center mt-4">
+        <h3>Área de Administração</h3>
+        <div class="d-flex justify-content-center gap-3 mt-3">
+            <!-- Botão para Index dos Alunos -->
+            <a asp-controller="Alunos" asp-action="Index" class="btn btn-primary btn-lg">
+                Alunos
+            </a>
+
+            <!-- Botão para Index dos Instrutores -->
+            <a asp-controller="Instrutores" asp-action="Index" class="btn btn-success btn-lg">
+                Instrutores
+            </a>
+
+            <!-- Botão para Index das Secretarias -->
+            <a asp-controller="Secretarias" asp-action="Index" class="btn btn-warning btn-lg">
+                Secretarias
+            </a>
+        </div>
+    </div>
+}
+
+@* utilizado para saber se o utilizador tinha o role atribuido
+    aparece uma mensagem no canto inferior esquerdo da home page
+    
+    @if (User.IsInRole("Admin"))
 {
     <h1>Hello Admin</h1>
 } else if (User.IsInRole("Aluno"))
@@ -27,4 +52,4 @@ else if (User.IsInRole("Secretaria"))
 else
 {
     <h1>Hello User</h1>
-}
+} *@

@@ -1,47 +1,73 @@
 ﻿@model CreateUserVm
 
 @{
-    ViewData["Title"] = "Criar Utilizador";
+    ViewData["Title"] = "Criar utilizador";
 }
 
-<h2>@ViewData["Title"]</h2>
+<h2>Criar Utilizador</h2>
 
-<form asp-action="CreateUser" method="post" id="create-user-form">
-    <div>
-        <label>Função:</label>
-        <select asp-for="Role" id="role-select" required>
+<form asp-action="CreateUser" method="post" enctype="multipart/form-data" id="create-user-form" style="max-width:500px; margin:auto;">
+
+    <h2 style="text-align:center; margin-bottom:20px;">Criar Utilizador</h2>
+
+    <div style="margin-bottom:15px;">
+        <label for="role-select" style="display:block; font-weight:bold;">Função:</label>
+        <select asp-for="Role" id="role-select" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
             <option value="Aluno">Aluno</option>
             <option value="Instrutor">Instrutor</option>
             <option value="Secretaria">Secretaria</option>
             <option value="Admin">Admin</option>
         </select>
+
+        <span asp-validation-for="Role" class="text-danger"></span>
     </div>
 
-    <div>
-        <label>Nome Completo:</label>
-        <input asp-for="NomeCompleto" required />
+    <div style="margin-bottom:15px;">
+        <label asp-for="NomeCompleto" style="display:block; font-weight:bold;">Nome Completo:</label>
+        <input asp-for="NomeCompleto" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;" />
+        <span asp-validation-for="NomeCompleto" class="text-danger"></span>
     </div>
 
-    <div>
-        <label>Foto (URL):</label>
-        <input asp-for="FotoUrl" />
+    <div style="margin-bottom:15px;">
+        <label asp-for="FotoUrl" style="display:block; font-weight:bold;">Foto (URL):</label>
+        <input asp-for="FotoUrl" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;" />
+        <span asp-validation-for="FotoUrl" class="text-danger"></span>
     </div>
 
-    <div>
-        <label>Nº Telemóvel:</label>
-        <input asp-for="NrTelemovel" />
+    <div style="margin-bottom:15px;">
+        <label asp-for="FotoUpload" style="display:block; font-weight:bold;">Upload da Foto:</label>
+        <input type="file" asp-for="FotoUpload" accept=".png,.jpg,.jpeg" style="width:100%;" />
+        <span asp-validation-for="FotoUpload" class="text-danger"></span>
     </div>
 
-    <!-- Morada só para Aluno -->
-    <div id="morada-wrapper" style="display:none;">
-        <label>Morada:</label>
-        <input asp-for="Morada" />
+    <div style="margin-bottom:15px;">
+        <label asp-for="NrTelemovel" style="display:block; font-weight:bold;">Nº Telemóvel:</label>
+        <input asp-for="NrTelemovel" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;" />
+        <span asp-validation-for="NrTelemovel" class="text-danger"></span>
     </div>
 
-    <button type="submit">Criar Utilizador</button>
+    <div id="morada-wrapper" style="margin-bottom:15px; display:none;">
+        <label asp-for="Morada" style="display:block; font-weight:bold;">Morada:</label>
+        <input asp-for="Morada" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;" />
+        <span asp-validation-for="Morada" class="text-danger"></span>
+    </div>
+
+    <div style="text-align:center;">
+        <button type="submit" style="background-color:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:16px;">
+            Criar Utilizador
+        </button>
+    </div>
+
 </form>
 
+
 @section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @*Só aparece morada caso o utilizador selecionado for do tipo aluno*@
     <script>
         function toggleMorada() {
             const role = document.getElementById('role-select').value;

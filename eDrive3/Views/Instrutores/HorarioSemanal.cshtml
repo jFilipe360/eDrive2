@@ -1,0 +1,187 @@
+﻿@model List<Aula>
+@using System.Globalization
+@{
+    var ini        = (DateTime)ViewBag.Inicio;                         // segunda‑feira da semana
+    var dias       = Enumerable.Range(0, 7).Select(d => ini.AddDays(d)).ToList();
+    var horas      = Enumerable.Range(9, 11).ToList();                // 9…19
+    var instrutor  = (Instrutor)ViewBag.Instrutor!;
+    bool eAluno    = User.IsInRole("Aluno");
+
+    ViewData["Title"] = "Horário Pessoal";
+}
+
+<h2>Horário Semanal de @instrutor.Name</h2>
+<h3>Semana de @(ini.ToString("dd/MM")) – @(ini.AddDays(6).ToString("dd/MM"))</h3>
+
+<table class="table table-bordered text-center">
+    <thead>
+        <tr>
+            <th style="width:80px"></th>
+            @foreach (var dia in dias)
+            {
+                <th>
+                    @dia.ToString("dd/MM")<br />
+                    @dia.ToString("ddd", new System.Globalization.CultureInfo("pt-PT"))
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var h in horas)
+        {
+            var horaIni = new TimeSpan(h, 0, 0);
+            var horaFim = horaIni.Add(TimeSpan.FromHours(1));
+
+            <tr>
+                <th>@($"{h:00}:00-{h + 1:00}:00")</th>
+
+                @foreach (var dia in dias)
+                {
+                    /* ---------- cores fixas ---------- */
+                    bool isSatAfternoon = dia.DayOfWeek == DayOfWeek.Saturday && h >= 13;
+                    bool isSunday = dia.DayOfWeek == DayOfWeek.Sunday;
+                    bool isLunchTime = dia.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday) && h == 13;
+
+                    /* ---------- aulas do instrutor ---------- */
+                    var aulasHora = Model
+                    .Where(a => a.LessonDate.Date == dia.Date &&
+                    a.LessonDate.TimeOfDay >= horaIni &&
+                    a.LessonDate.TimeOfDay < horaFim)
+                    .OrderBy(a => a.Tipo)
+                    .ToList();
+
+                    /* ---------- definir classe da célula ---------- */
+                    string cellClass;
+                    if (!aulasHora.Any())                 // slot vazio
+                    {
+                        if (isSatAfternoon || isSunday) cellClass = "saturday-afternoon";
+                        else if (isLunchTime) cellClass = "lunch-time";
+                        else cellClass = "slot-free";
+                    }
+                    else                                   // pelo menos uma aula
+                    {
+                        var aula = aulasHora.First();       // 1 prática (ou várias T)
+                        if (aula.Tipo == Aula.TipoAula.Prática)
+                            cellClass = aula.Confirmada ? "slot-confirmed" : "slot-booked";
+                        else
+                            cellClass = "slot-booked";      // teóricas sempre amarelo
+                    }
+
+                    /* ---------- célula ---------- */
+                    <td class="@cellClass"
+                        style="min-width:120px; vertical-align:top; font-size:0.85em"
+                        data-date="@dia.ToString("yyyy-MM-dd")"
+                        data-hora="@h"
+                        data-instrutor="@instrutor.InstrutorID">
+
+                        @if (aulasHora.Any())
+                        {
+                            <ul class="list-unstyled m-0 p-0">
+                                @foreach (var aula in aulasHora)
+                                {
+                                    var alunoNome = aula.Presencas.FirstOrDefault()?.Aluno?.NomeCompleto;
+                                    <li>
+                                        <strong>@(aula.Tipo == Aula.TipoAula.Teórica ? "T" : "P")‑@aula.Numero</strong><br />
+                                        <span>@alunoNome</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Legenda -->
+<div class="legend">
+    <div class="legend-item"><div class="legend-color lunch-time"></div><span>Hora de Almoço</span></div>
+    <div class="legend-item"><div class="legend-color saturday-afternoon"></div><span>Fechado</span></div>
+    <div class="legend-item"><div class="legend-color slot-booked"></div><span>Reservado</span></div>
+    <div class="legend-item"><div class="legend-color green"></div><span>Confirmada</span></div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="HorarioSemanal"
+       asp-route-id="@instrutor.InstrutorID"
+       asp-route-ano="@ISOWeek.GetYear(ini.AddDays(-7))"
+       asp-route-semanaISO="@ISOWeek.GetWeekOfYear(ini.AddDays(-7))">
+        ← Semana anterior
+    </a>
+    |
+    <a asp-action="HorarioSemanal"
+       asp-route-id="@instrutor.InstrutorID"
+       asp-route-ano="@ISOWeek.GetYear(ini.AddDays(7))"
+       asp-route-semanaISO="@ISOWeek.GetWeekOfYear(ini.AddDays(7))">
+        Próxima semana →
+    </a>
+</div>
+
+@section Scripts
+{
+    @if (eAluno)
+    {
+        <script>
+            $(function () {
+
+                function formatDate(dateStr) {
+                    const parts = dateStr.split('-');
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+
+                // clique em célula livre
+                $(document).on('click', 'td.slot-free', function () {
+
+                    const $cell = $(this);
+                    const data  = {
+                        instrutorId : $cell.data('instrutor'),
+                        date        : $cell.data('date'),  // yyyy-MM-dd
+                        hour        : $cell.data('hora')   // 9‑19
+                    };
+
+                    // modal Bootstrap 5
+                    const modalHtml = `
+                        <div class="modal fade" id="confirmAulaModal" tabindex="-1">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header"><h5 class="modal-title">Marcar aula prática?</h5></div>
+                              <div class="modal-body">
+                                  <p>Quer reservar a aula prática para<br>
+                                     <strong>${formatDate(data.date)} às ${data.hour}:00</strong>?</p>
+                              </div>
+                              <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                  <button type="button" class="btn btn-primary" id="btnConfirmReservar">Sim</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>`;
+                    $('body').append(modalHtml);
+                    const modal = new bootstrap.Modal(document.getElementById('confirmAulaModal'));
+                    modal.show();
+
+                    $('#btnConfirmReservar').one('click', function () {
+
+                        $.ajax({
+                            type       : 'POST',
+                            url        : '@Url.Action("ReservarAula", "Instrutores")',
+                            contentType: 'application/json',
+                            data       : JSON.stringify(data)
+                        })
+                        .done(res => {
+                            $cell.removeClass('slot-free')
+                                 .addClass('slot-booked')
+                                 .html(`<span>${res.alunoNome}</span>`);
+                        })
+                        .fail(err => alert(err.responseText ?? 'Erro ao reservar a aula.'));
+                        modal.hide();
+                    });
+
+                    $('#confirmAulaModal').on('hidden.bs.modal', () => $('#confirmAulaModal').remove());
+                });
+
+            });
+        </script>
+    }
+}

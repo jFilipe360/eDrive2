@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using eDrive3.Data;
+﻿using eDrive3.Data;
 using eDrive3.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace eDrive3.Controllers
 {
     public class AlunosController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AlunosController(ApplicationDbContext context)
+        public AlunosController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Alunos
@@ -43,8 +42,9 @@ namespace eDrive3.Controllers
             return View(aluno);
         }
 
-        
+
         // GET: Alunos/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -65,6 +65,7 @@ namespace eDrive3.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("AlunoID,NomeCompleto,FotoUrl,Email,NrTelemovel,Morada")] Aluno aluno)
         {
             if (id != aluno.AlunoID)
@@ -96,6 +97,7 @@ namespace eDrive3.Controllers
         }
 
         // GET: Alunos/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -116,21 +118,75 @@ namespace eDrive3.Controllers
         // POST: Alunos/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var aluno = await _context.Alunos.FindAsync(id);
-            if (aluno != null)
+            if (aluno == null)
             {
-                _context.Alunos.Remove(aluno);
+                return NotFound();
             }
 
+            // Desassociar o ApplicationUser que está ligado a este aluno
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.AlunoID == id);
+
+            if (user != null)
+            {
+                user.AlunoID = null;
+                await _userManager.UpdateAsync(user);
+            }
+
+            //Remover o aluno
+            _context.Alunos.Remove(aluno);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
         private bool AlunoExists(int id)
         {
             return _context.Alunos.Any(e => e.AlunoID == id);
+        }
+
+        //Função para mostrar as presenças do aluno
+        [Authorize(Roles = "Aluno")]
+        public async Task<IActionResult> MapaPresencas()
+        {
+            //Busca o utilizador autenticado
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            //Gera uma lista para o número de aulas teóricas e práticas
+            var numerosTeoricos = Enumerable.Range(1, 28).ToList();
+            var numerosPraticos = Enumerable.Range(1, 32).ToList();
+
+            //Lista de presenças teóricas
+            var presencasTeoricas = await _context.Presencas
+                .Include(p => p.Aula)
+                .Where(p => p.AlunoID == user.AlunoID
+                         && p.Aula.Tipo == Aula.TipoAula.Teórica
+                         && p.Estado == Presenca.ListaEstados.Presente)
+                .ToListAsync();
+
+            //Lista de presenças práticas
+            var presencasPraticas = await _context.Presencas
+                .Include(p => p.Aula)
+                .Where(p => p.AlunoID == user.AlunoID
+                         && p.Aula.Tipo == Aula.TipoAula.Prática
+                         && p.Estado == Presenca.ListaEstados.Concluíu)
+                .ToListAsync();
+
+            //Guardar os números das aulas e o estado da presença por número
+            var presentesPorNumeroTeorico = new HashSet<int>(presencasTeoricas.Select(p => p.Aula.Numero));
+            var presentesPorNumeroPratico = new HashSet<int>(presencasPraticas.Select(p => p.Aula.Numero));
+
+            ViewBag.NumerosTeoricos = numerosTeoricos;
+            ViewBag.PresentesPorNumeroTeorico = presentesPorNumeroTeorico;
+            ViewBag.NumerosPraticos = numerosPraticos;
+            ViewBag.PresentesPorNumeroPratico = presentesPorNumeroPratico;
+
+            return View();
         }
     }
 }

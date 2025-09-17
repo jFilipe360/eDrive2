@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using eDrive3.Data;
+using eDrive3.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using eDrive3.Data;
-using eDrive3.Models;
 
 namespace eDrive3.Controllers
 {
+    [Authorize(Roles = "Secretaria")]
     public class AulasController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -46,6 +44,7 @@ namespace eDrive3.Controllers
         // GET: Aulas/Create
         public IActionResult Create()
         {
+            //Cria uma aula teórica para um determinado instrutor
             ViewBag.InstructorList = _context.Instrutores
                 .Select(i => new SelectListItem
                 {
@@ -62,31 +61,46 @@ namespace eDrive3.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AulaID,LessonDate,Duration,Tipo,InstructorId")] Aula aula)
+        public async Task<IActionResult> Create([Bind("LessonDate,Duration,Numero,InstrutorID")] Aula aula)
         {
+            //Força o tipo de aula para teórica
+            aula.Tipo = Aula.TipoAula.Teórica;
+
+            //Campos gerados pelo sistema
+            aula.Codigo = GenerateCode(10);
+            aula.Presencas = new List<Presenca>();
+            aula.Duration = 60; // sempre 60 minutos
+
+            //Validações
+            // a) limite do número da aula teórica (só de 1 a 28)
+            int maxNumero = 28;
+            if (aula.Numero < 1 || aula.Numero > maxNumero)
+                ModelState.AddModelError(nameof(aula.Numero), $"O número deve estar entre 1 e {maxNumero}.");
+
+            // b) bloco horário já ocupado?
+            DateTime blocoFim = aula.LessonDate.AddHours(1);
+            bool blocoOcupado = await _context.Aulas
+                .AnyAsync(a => a.LessonDate >= aula.LessonDate && a.LessonDate < blocoFim);
+            if (blocoOcupado)
+                ModelState.AddModelError(nameof(aula.LessonDate), "Já existe uma aula neste bloco horário.");
+
+            // c) verificar duplicação de aula teórica com o mesmo número no mesmo dia
+            bool numRepetido = await _context.Aulas
+                .AnyAsync(a => a.Tipo == Aula.TipoAula.Teórica
+                            && a.Numero == aula.Numero
+                            && a.LessonDate.Date == aula.LessonDate.Date);
+            if (numRepetido)
+                ModelState.AddModelError(nameof(aula.Numero), "Já existe uma aula teórica com esse número nesse dia.");
+
+            //Se válido, gravar 
             if (ModelState.IsValid)
             {
-                // Log or inspect errors
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                // You can put a breakpoint here or log errors somewhere
-                // For example, pass errors to view temporarily:
-                ViewBag.Errors = errors;
-
-                // Re-populate dropdown before returning view
-                ViewBag.InstructorList = _context.Instrutores
-                    .Select(i => new SelectListItem
-                    {
-                        Value = i.InstrutorID.ToString(),
-                        Text = i.InstrutorID + " - " + i.Name
-                    })
-                    .ToList();
-
-                return View(aula);
+                _context.Add(aula);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
 
-            _context.Add(aula);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return View(aula);
         }
 
         // GET: Aulas/Edit/5
@@ -173,9 +187,23 @@ namespace eDrive3.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        //Verifica se a aula existe
         private bool AulaExists(int id)
         {
             return _context.Aulas.Any(e => e.AulaID == id);
         }
+
+
+        //Gerar um código para a aula
+        private static string GenerateCode(int len)
+        {
+            //O código será uma string de x caracteres que inclui letras(minúsculas e maiúsculas), numeros e símbolos
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789@$%!*?";
+            
+            //Gera um valor aleatório e vai buscar o valor que se encontra nessa posição na string "chars"
+            var rng = new Random();
+            return new string(Enumerable.Range(0, len).Select(_ => chars[rng.Next(chars.Length)]).ToArray());
+        }
     }
+
 }
