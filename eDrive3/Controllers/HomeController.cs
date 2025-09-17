@@ -13,11 +13,13 @@ namespace eDrive3.Controllers
             _logger = logger;
         }
 
+        //Página principal
         public IActionResult Index()
         {
             return View();
         }
 
+        //Página com informação do projeto
         public IActionResult Privacy()
         {
             return View();

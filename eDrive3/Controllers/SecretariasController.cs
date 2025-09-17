@@ -1,19 +1,16 @@
 ﻿using eDrive3.Data;
 using eDrive3.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace eDrive3.Controllers
 {
     public class SecretariasController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public SecretariasController(ApplicationDbContext context)
         {
@@ -124,21 +121,37 @@ namespace eDrive3.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Encontrar a secretaria
             var secretaria = await _context.Secretarias.FindAsync(id);
-            if (secretaria != null)
+            if (secretaria == null)
             {
-                _context.Secretarias.Remove(secretaria);
+                return NotFound();
             }
 
+            // Desassociar o ApplicationUser que está ligado a esta secretaria
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.SecretariaID == id);
+
+            if (user != null)
+            {
+                user.SecretariaID = null;
+                await _userManager.UpdateAsync(user);
+            }
+
+            //Remover a secretaria
+            _context.Secretarias.Remove(secretaria);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        
-        /* Lista de reservas pendentes */
+
+        // Lista de reservas pendentes
         [Authorize(Roles = "Secretaria")]
         public async Task<IActionResult> ReservasPendentes()
         {
+
+            //Gera uma lista de todas as reservas -> aulas práticas, marcadas pelos alunos, cuja presença ainda não foi validada
             var pendentes = await _context.Aulas
                 .Include(a => a.Instrutor)
                 .Include(a => a.Presencas).ThenInclude(p => p.Aluno)
@@ -148,20 +161,23 @@ namespace eDrive3.Controllers
             return View(pendentes);
         }
 
-
+        //Confirmação da presença na aula
         // POST: Secretarias/Confirmar/123
         [Authorize(Roles = "Secretaria")]
         [HttpPost]
         public async Task<IActionResult> Confirmar(int id)
         {
+            //Procura a aula
             var aula = await _context.Aulas
                 .Include(a => a.Presencas)
                 .FirstOrDefaultAsync(a => a.AulaID == id);
 
             if (aula == null) return NotFound();
 
+            //Confirma a aula
             aula.Confirmada = true;
 
+            //Na BD, altera o estado para concluíu
             foreach (var p in aula.Presencas)
             {
                 p.Estado = Presenca.ListaEstados.Concluíu;
@@ -176,21 +192,24 @@ namespace eDrive3.Controllers
         [HttpPost]
         public async Task<IActionResult> Rejeitar(int id)
         {
+            //Procura a aula
             var aula = await _context.Aulas
                         .Include(a => a.Presencas)
                         .FirstOrDefaultAsync(a => a.AulaID == id);
 
+            //Erro caso não exista aula
             if (aula == null) return NotFound();
             if (aula.Tipo != Aula.TipoAula.Prática) return BadRequest();
 
-            // o aluno está em presencas (há sempre 1)
+            //Remove a aula marcada
             int alunoId = aula.Presencas.First().AlunoID;
             int numeroEliminado = aula.Numero;
 
             _context.Presencas.RemoveRange(aula.Presencas);
             _context.Aulas.Remove(aula);
 
-            // 3. RENUMERA aulas práticas posteriores do MESMO aluno
+            //Renumeração das aulas práticas posteriores do mesmo aluno
+            //Exemplo: se o aluno marcar as aulas práticas 2 e 3, caso falte à aula 2, a aula prática 3 passa a ser a nova aula 2
             var posteriores = await _context.Aulas
                 .Include(a => a.Presencas)
                 .Where(a => a.Tipo == Aula.TipoAula.Prática &&

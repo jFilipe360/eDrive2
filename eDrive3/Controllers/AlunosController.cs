@@ -3,12 +3,7 @@ using eDrive3.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace eDrive3.Controllers
 {
@@ -127,12 +122,25 @@ namespace eDrive3.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var aluno = await _context.Alunos.FindAsync(id);
-            if (aluno != null)
+            if (aluno == null)
             {
-                _context.Alunos.Remove(aluno);
+                return NotFound();
             }
 
+            // Desassociar o ApplicationUser que está ligado a este aluno
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.AlunoID == id);
+
+            if (user != null)
+            {
+                user.AlunoID = null;
+                await _userManager.UpdateAsync(user);
+            }
+
+            //Remover o aluno
+            _context.Alunos.Remove(aluno);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -145,12 +153,15 @@ namespace eDrive3.Controllers
         [Authorize(Roles = "Aluno")]
         public async Task<IActionResult> MapaPresencas()
         {
+            //Busca o utilizador autenticado
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            //Gera uma lista para o número de aulas teóricas e práticas
             var numerosTeoricos = Enumerable.Range(1, 28).ToList();
             var numerosPraticos = Enumerable.Range(1, 32).ToList();
 
+            //Lista de presenças teóricas
             var presencasTeoricas = await _context.Presencas
                 .Include(p => p.Aula)
                 .Where(p => p.AlunoID == user.AlunoID
@@ -158,6 +169,7 @@ namespace eDrive3.Controllers
                          && p.Estado == Presenca.ListaEstados.Presente)
                 .ToListAsync();
 
+            //Lista de presenças práticas
             var presencasPraticas = await _context.Presencas
                 .Include(p => p.Aula)
                 .Where(p => p.AlunoID == user.AlunoID
@@ -165,6 +177,7 @@ namespace eDrive3.Controllers
                          && p.Estado == Presenca.ListaEstados.Concluíu)
                 .ToListAsync();
 
+            //Guardar os números das aulas e o estado da presença por número
             var presentesPorNumeroTeorico = new HashSet<int>(presencasTeoricas.Select(p => p.Aula.Numero));
             var presentesPorNumeroPratico = new HashSet<int>(presencasPraticas.Select(p => p.Aula.Numero));
 

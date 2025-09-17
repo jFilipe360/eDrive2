@@ -1,12 +1,8 @@
 ﻿using eDrive3.Data;
 using eDrive3.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace eDrive3.Controllers
 {
@@ -27,16 +23,20 @@ namespace eDrive3.Controllers
         [HttpGet]
         public async Task<IActionResult> MarcarPorNumero(int numero)
         {
+
+            // Procura todas as aulas teóricas que tenham o número indicado
             var aulas = await _context.Aulas
                 .Where(a => a.Tipo == Aula.TipoAula.Teórica && a.Numero == numero)
                 .ToListAsync();
 
+            // Se não existirem aulas com esse número, mostra um erro e redireciona para o mapa de presenças
             if (!aulas.Any())
             {
                 TempData["Error"] = $"A aula teórica nº {numero} ainda não foi criada.";
                 return RedirectToAction("MapaPresencas", "Alunos");
             }
 
+            //ViewModel para mostrar o formulário com as aulas disponíveis
             var vm = new MarcarPorNumeroViewModel
             {
                 Numero = numero,
@@ -46,12 +46,14 @@ namespace eDrive3.Controllers
             return View(vm);
         }
 
-        // POST: Mark presence with code validation
+        //POST: Marcar presença, validando também o código fornecido
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarPorNumero(MarcarPorNumeroViewModel model)
         {
-            _logger.LogInformation("Método MarcarPorNumero chamado.");
+            _logger.LogInformation("Método MarcarPorNumero chamado."); 
+
+            //Busca o utilizador que está autenticado
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -61,6 +63,7 @@ namespace eDrive3.Controllers
 
             _logger.LogInformation($"Número da aula: {model.Numero}, Código: {model.Codigo}");
 
+            //Validação do formulário
             if (!ModelState.IsValid)
             {
                 _logger.LogInformation("ModelState inválido.");
@@ -71,12 +74,15 @@ namespace eDrive3.Controllers
                         _logger.LogInformation(error.ErrorMessage);
                     }
                 }
+
+                //Recarrega a lista de aulas para mostrar na view
                 model.Aulas = await _context.Aulas
                     .Where(a => a.Tipo == Aula.TipoAula.Teórica && a.Numero == model.Numero)
                     .ToListAsync();
                 return View(model);
             }
 
+            //Verifica a existência de aulas para o código fornecido
             var aula = await _context.Aulas
                 .FirstOrDefaultAsync(a => a.Numero == model.Numero
                                        && a.Tipo == Aula.TipoAula.Teórica
@@ -92,6 +98,7 @@ namespace eDrive3.Controllers
                 return View(model);
             }
 
+            //Verifica se o aluno já marcou presença em alguma aula com o mesmo número
             bool existePresenca = await _context.Presencas
                 .AnyAsync(p => p.AulaID == aula.AulaID && p.AlunoID == user.AlunoID);
 
@@ -105,6 +112,7 @@ namespace eDrive3.Controllers
                 return View(model);
             }
 
+            //Nova presença
             var presenca = new Presenca
             {
                 AlunoID = user.AlunoID.Value,
@@ -112,6 +120,7 @@ namespace eDrive3.Controllers
                 Estado = Presenca.ListaEstados.Presente
             };
 
+            //Guardar a presença
             _context.Presencas.Add(presenca);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Presença registrada com sucesso.");

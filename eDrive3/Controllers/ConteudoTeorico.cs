@@ -4,6 +4,7 @@ namespace eDrive3.Controllers
 {
     public class ConteudoTeorico : Controller
     {
+        //Lista de aulas teóricas
         public IActionResult Index()
         {
             ViewBag.Aulas = Enumerable.Range(1, 28).ToList();

@@ -142,21 +142,21 @@
 
                     // modal Bootstrap 5
                     const modalHtml = `
-            <div class="modal fade" id="confirmAulaModal" tabindex="-1">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                  <div class="modal-header"><h5 class="modal-title">Marcar aula prática?</h5></div>
-                  <div class="modal-body">
-                      <p>Quer reservar a aula prática para<br>
-                         <strong>${formatDate(data.date)} às ${data.hour}:00</strong>?</p>
-                  </div>
-                  <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
-                      <button type="button" class="btn btn-primary" id="btnConfirmReservar">Sim</button>
-                  </div>
-                </div>
-              </div>
-            </div>`;
+                        <div class="modal fade" id="confirmAulaModal" tabindex="-1">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header"><h5 class="modal-title">Marcar aula prática?</h5></div>
+                              <div class="modal-body">
+                                  <p>Quer reservar a aula prática para<br>
+                                     <strong>${formatDate(data.date)} às ${data.hour}:00</strong>?</p>
+                              </div>
+                              <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                  <button type="button" class="btn btn-primary" id="btnConfirmReservar">Sim</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>`;
                     $('body').append(modalHtml);
                     const modal = new bootstrap.Modal(document.getElementById('confirmAulaModal'));
                     modal.show();

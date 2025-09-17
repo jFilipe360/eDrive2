@@ -1,14 +1,9 @@
 ﻿using eDrive3.Data;
 using eDrive3.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace eDrive3.Controllers
 {
@@ -49,6 +44,7 @@ namespace eDrive3.Controllers
         // GET: Aulas/Create
         public IActionResult Create()
         {
+            //Cria uma aula teórica para um determinado instrutor
             ViewBag.InstructorList = _context.Instrutores
                 .Select(i => new SelectListItem
                 {
@@ -67,28 +63,28 @@ namespace eDrive3.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("LessonDate,Duration,Numero,InstrutorID")] Aula aula)
         {
-            /* ──────────── 1. Forçar aula teórica ──────────── */
+            //Força o tipo de aula para teórica
             aula.Tipo = Aula.TipoAula.Teórica;
 
-            /* ──────────── 2. Campos gerados pelo sistema ──────────── */
+            //Campos gerados pelo sistema
             aula.Codigo = GenerateCode(10);
             aula.Presencas = new List<Presenca>();
-            aula.Duration = 60; // sempre 60 min
+            aula.Duration = 60; // sempre 60 minutos
 
-            /* ──────────── 3. Validações ──────────── */
-            // 3-a) limite de número (só 1..28)
+            //Validações
+            // a) limite do número da aula teórica (só de 1 a 28)
             int maxNumero = 28;
             if (aula.Numero < 1 || aula.Numero > maxNumero)
                 ModelState.AddModelError(nameof(aula.Numero), $"O número deve estar entre 1 e {maxNumero}.");
 
-            // 3-b) bloco horário já ocupado
+            // b) bloco horário já ocupado?
             DateTime blocoFim = aula.LessonDate.AddHours(1);
             bool blocoOcupado = await _context.Aulas
                 .AnyAsync(a => a.LessonDate >= aula.LessonDate && a.LessonDate < blocoFim);
             if (blocoOcupado)
                 ModelState.AddModelError(nameof(aula.LessonDate), "Já existe uma aula neste bloco horário.");
 
-            // 3-c) duplicar número teórico no mesmo dia
+            // c) verificar duplicação de aula teórica com o mesmo número no mesmo dia
             bool numRepetido = await _context.Aulas
                 .AnyAsync(a => a.Tipo == Aula.TipoAula.Teórica
                             && a.Numero == aula.Numero
@@ -96,7 +92,7 @@ namespace eDrive3.Controllers
             if (numRepetido)
                 ModelState.AddModelError(nameof(aula.Numero), "Já existe uma aula teórica com esse número nesse dia.");
 
-            /* ──────────── 4. Se válido, gravar ──────────── */
+            //Se válido, gravar 
             if (ModelState.IsValid)
             {
                 _context.Add(aula);
@@ -201,7 +197,10 @@ namespace eDrive3.Controllers
         //Gerar um código para a aula
         private static string GenerateCode(int len)
         {
+            //O código será uma string de x caracteres que inclui letras(minúsculas e maiúsculas), numeros e símbolos
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789@$%!*?";
+            
+            //Gera um valor aleatório e vai buscar o valor que se encontra nessa posição na string "chars"
             var rng = new Random();
             return new string(Enumerable.Range(0, len).Select(_ => chars[rng.Next(chars.Length)]).ToArray());
         }

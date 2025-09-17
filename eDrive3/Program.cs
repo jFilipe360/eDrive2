@@ -29,7 +29,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 
 builder.Services.AddControllersWithViews();
 
-// Autenticação combinada: Cookies (UI) + JWT (API)
+// Autenticaï¿½ï¿½o combinada: Cookies (UI) + JWT (API)
 builder.Services.AddAuthentication(options =>
 {
     // Default da UI continua sendo cookie
@@ -83,7 +83,7 @@ app.MapRazorPages()
 app.MapGet("/Identity/Account/Register", () => Results.NotFound());
 app.MapPost("/Identity/Account/Register", () => Results.NotFound());
 
-// Inicialização de roles e admin
+// Inicializaï¿½ï¿½o de roles e admin
 using (var scope = app.Services.CreateScope())
 {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();

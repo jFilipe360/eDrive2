@@ -25,7 +25,6 @@
             <div class="form-group">
                 <label asp-for="Numero" class="control-label"></label>
                 <select asp-for="Numero" id="numero-select" class="form-control">
-                    <!-- sempre 1‑32, JS esconde 29‑32 se for Teórica -->
                     @for (var i = 1; i <= 28; i++)
                     {
                         <option value="@i">@i</option>
@@ -54,27 +53,4 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
-    @* <script>
-        // referencia aos select
-        const tipoSel   = document.querySelector('[asp-for="Tipo"]')
-                          || document.getElementById('Tipo');
-        const numeroSel = document.getElementById('numero-select');
-
-        // esconde 29‑32 quando for Teórica (enum valor 0)
-        function updateNumeroOptions() {
-            const isTeorica = parseInt(tipoSel.value) === 0;   // 0 = Teórica
-            for (const opt of numeroSel.options) {
-                const val = parseInt(opt.value);
-                opt.style.display = (isTeorica && val > 28) ? 'none' : '';
-            }
-            // se tinha seleccionado >28 e mudou para Teórica, volta a 1
-            if (isTeorica && parseInt(numeroSel.value) > 28) {
-                numeroSel.value = 1;
-            }
-        }
-
-        tipoSel.addEventListener('change', updateNumeroOptions);
-        updateNumeroOptions(); // aplica logo ao carregar a página
-    </script> *@
 }

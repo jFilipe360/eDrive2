@@ -3,14 +3,7 @@ using eDrive3.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using QRCoder;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using QRCoder;
 
 namespace eDrive3.Controllers
@@ -138,13 +131,27 @@ namespace eDrive3.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Encontrar o instrutor
             var instrutor = await _context.Instrutores.FindAsync(id);
-            if (instrutor != null)
+            if (instrutor == null)
             {
-                _context.Instrutores.Remove(instrutor);
+                return NotFound();
             }
 
+            // Desassociar o ApplicationUser que está ligado a este instrutor
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.InstrutorID == id);
+
+            if (user != null)
+            {
+                user.InstrutorID = null;
+                await _userManager.UpdateAsync(user);
+            }
+
+            //Remover o instrutor
+            _context.Instrutores.Remove(instrutor);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -153,6 +160,7 @@ namespace eDrive3.Controllers
             return _context.Instrutores.Any(e => e.InstrutorID == id);
         }
 
+        //Mostrar o horário semanal do instrutor
         // GET: Instrutores/HorarioSemanal/5?ano=2025&semanaISO=29
         [HttpGet]
         public async Task<IActionResult> HorarioSemanal(
@@ -160,6 +168,7 @@ namespace eDrive3.Controllers
                 int? ano,
                 int? semanaISO)
         {
+            //Procura o instrutor na BD, incluindo as aulas marcadas e os alunos referentes a cada aula
             var instrutor = await _context.Instrutores
                 .Include(i => i.Aulas)
                     .ThenInclude(a => a.Presencas)          // ← presenças
@@ -167,6 +176,8 @@ namespace eDrive3.Controllers
                 .FirstOrDefaultAsync(i => i.InstrutorID == id);
             if (instrutor == null) return NotFound();
 
+            // Determinar o início da semana
+            // Usa o ano e semana atuais
             DateTime inicioSemana = (ano, semanaISO) switch
             {
                 (int a, int s) => System.Globalization.ISOWeek.ToDateTime(a, s, DayOfWeek.Monday).Date,
@@ -176,31 +187,36 @@ namespace eDrive3.Controllers
                                       DayOfWeek.Monday).Date
             };
 
+            //Indica a duração da semana
             var fimSemana = inicioSemana.AddDays(7);
 
+            //Mostrar aulas que ocorram numa determinada semana
             var aulas = instrutor.Aulas
                 .Where(a => a.LessonDate >= inicioSemana && a.LessonDate < fimSemana)
                 .ToList();
 
-            ViewBag.Inicio = inicioSemana;
-            ViewBag.Instrutor = instrutor;
+            //Guarda informações numa viewbag
+            ViewBag.Inicio = inicioSemana; //Data de inicio da semana
+            ViewBag.Instrutor = instrutor; //Dados do instrutor
             return View(aulas);     // HorarioSemanal.cshtml
         }
 
+        //Reserva da aula prática pelo aluno
         public record ReservaViewModel(int InstrutorId, string Date, int Hour);
 
         [HttpPost]
         [Authorize(Roles = "Aluno")]
         public async Task<IActionResult> ReservarAula([FromBody] ReservaViewModel vm)
         {
+            //Validade dos dados
             if (vm is null) return BadRequest();
 
-            //aluno autenticado
+            //Aluno autenticado
             var user = await _userManager.GetUserAsync(User);
             var aluno = await _context.Alunos.FirstOrDefaultAsync(a => a.AlunoID == user.AlunoID);
             if (aluno == null) return Unauthorized();
 
-            //data e hora pedidas
+            //Data e hora pedidas
             if (!DateTime.TryParse($"{vm.Date} {vm.Hour}:00", out var dtInicio))
                 return BadRequest("Data inválida.");
             var dtFim = dtInicio.AddHours(1);
@@ -209,28 +225,28 @@ namespace eDrive3.Controllers
             if (dtInicio < DateTime.Now)
                 return Conflict("Não é possível reservar aulas em blocos horários já decorridos.");
 
-            //slot já está ocupado?
+            //Verifica se o slot do horário já está ocupado
             if (await BlocoOcupado(dtInicio, vm.InstrutorId))
                 return Conflict("Já existe uma aula nesse bloco horário.");
 
-            // ----- conta aulas práticas do aluno (via Presencas) -----
+            //Conta as aulas práticas do aluno (via Presencas)
             var presencasPraticas = _context.Presencas
                 .Include(p => p.Aula)
                 .Where(p => p.AlunoID == aluno.AlunoID
                          && p.Aula.Tipo == Aula.TipoAula.Prática);
 
-            // 2 por dia?
+            //Máximo de 2 aulas práticas por dia
             int diaCount = await presencasPraticas
                 .CountAsync(p => p.Aula.LessonDate.Date == dtInicio.Date);
             if (diaCount >= 2)
                 return Conflict("Limite de 2 aulas práticas por dia atingido.");
 
-            // total 32?
+            //Aluno só pode reservar 32 aulas práticas 
             int totalCount = await presencasPraticas.CountAsync();
             if (totalCount >= 32)
                 return Conflict("Já reservou 32 aulas práticas.");
 
-            //a reserva só é feita depois da ultima aula reservada
+            //A nova reserva só é feita depois da ultima aula reservada
             DateTime? ultimaAula = await presencasPraticas
                 .Select(p => p.Aula.LessonDate)
                 .OrderByDescending(d => d)
@@ -239,11 +255,11 @@ namespace eDrive3.Controllers
                 return Conflict($"A sua última aula prática é em {ultimaAula:dd/MM/yyyy HH:mm}. "
                               + "Só pode marcar aulas posteriores.");
 
-            //calculo do nr da próxima aula
+            //Cálculo do número da próxima aula prática
             int proximoNumero = (ultimaAula == null) ? 1   // nenhuma ainda
                      : await presencasPraticas.CountAsync() + 1;   // 1 … 32
 
-            // ----- criar Aula -----
+            //Cria a aula
             var aula = new Aula
             {
                 InstrutorID = vm.InstrutorId,
@@ -256,7 +272,7 @@ namespace eDrive3.Controllers
             _context.Aulas.Add(aula);
             await _context.SaveChangesAsync();    // obtém AulaID
 
-            // ----- criar Presenca que liga aluno ↔ aula -----
+            // Criar Presenca que liga aluno ↔ aula
             _context.Presencas.Add(new Presenca
             {
                 AlunoID = aluno.AlunoID,
@@ -268,6 +284,7 @@ namespace eDrive3.Controllers
             return Ok(new { alunoNome = aluno.NomeCompleto });
         }
 
+        //Verificação da disponibilidade num bloco
         private async Task<bool> BlocoOcupado(DateTime inicio, int instrutorId)
         {
             DateTime fim = inicio.AddHours(1);
@@ -275,7 +292,7 @@ namespace eDrive3.Controllers
                 a.LessonDate >= inicio && a.LessonDate < fim);
         }
 
-        // GET: Lista a dropdown
+        // GET: Lista do número de aulas teóricas, 1 a 28
         public IActionResult CodigoAulas()
         {
             ViewBag.Aulas = Enumerable.Range(1, 28).ToList();
@@ -296,13 +313,14 @@ namespace eDrive3.Controllers
             return View(aulas);
         }
 
+        //QrCode para obter código da aula
         public IActionResult QrCode(int id)
         {
             var aula = _context.Aulas.FirstOrDefault(a => a.AulaID == id);
             if (aula == null || string.IsNullOrEmpty(aula.Codigo))
                 return NotFound("Aula ou código não encontrado.");
 
-            // Gerar QR Code (versão moderna sem System.Drawing)
+            // Gerar QR Code
             var qrGenerator = new QRCodeGenerator();
             var qrCodeData = qrGenerator.CreateQrCode(aula.Codigo, QRCodeGenerator.ECCLevel.Q);
             var qrCode = new PngByteQRCode(qrCodeData);
