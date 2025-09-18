@@ -1,8 +1,10 @@
 ﻿using eDrive3.Data;
+using eDrive3.Hubs;
 using eDrive3.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace eDrive3.Controllers
@@ -11,10 +13,12 @@ namespace eDrive3.Controllers
     public class AulasController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<NotificacoesHub> _hubContext;
 
-        public AulasController(ApplicationDbContext context)
+        public AulasController(ApplicationDbContext context, IHubContext<NotificacoesHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: Aulas
@@ -97,6 +101,14 @@ namespace eDrive3.Controllers
             {
                 _context.Add(aula);
                 await _context.SaveChangesAsync();
+
+                // Envia notificação apenas se for aula teórica
+                if (aula.Tipo == Aula.TipoAula.Teórica)
+                {
+                    string msg = $"Foi marcada uma nova aula teórica nº {aula.Numero} para {aula.LessonDate:dd/MM/yyyy HH:mm}.";
+                    await _hubContext.Clients.All.SendAsync("ReceberNotificacao", msg);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 

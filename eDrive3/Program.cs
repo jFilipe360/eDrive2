@@ -51,6 +51,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Adiciona SignalR
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Pipeline
@@ -83,7 +86,7 @@ app.MapRazorPages()
 app.MapGet("/Identity/Account/Register", () => Results.NotFound());
 app.MapPost("/Identity/Account/Register", () => Results.NotFound());
 
-// Inicializa��o de roles e admin
+// Inicialização de roles e admin
 using (var scope = app.Services.CreateScope())
 {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -124,5 +127,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+
+app.MapHub<eDrive3.Hubs.NotificacoesHub>("/notificacoesHub");
 
 await app.RunAsync();
