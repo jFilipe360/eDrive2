@@ -13,6 +13,36 @@
     <link rel="stylesheet" href="~/css/site.css?v=1.2" asp-append-version="true" />
     <link rel="stylesheet" href="~/eDrive3.styles.css" asp-append-version="true" />
 </head>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    // Criar a conexão com o hub
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/notificacoesHub")
+        .build();
+
+    // Método chamado pelo servidor
+    connection.on("ReceberNotificacao", (mensagem) => {
+        mostrarNotificacao(mensagem);
+    });
+
+    // Iniciar a conexão
+    connection.start().catch(err => console.error(err));
+
+    // Função para mostrar notificação bonita no canto inferior
+    function mostrarNotificacao(msg) {
+        const notif = document.createElement("div");
+        notif.className = "alert alert-info position-fixed bottom-0 end-0 m-3 shadow";
+        notif.style.zIndex = "1050";
+        notif.textContent = msg;
+
+        document.body.appendChild(notif);
+
+        setTimeout(() => notif.remove(), 6000); // desaparece em 6s
+    }
+</script>
+
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
